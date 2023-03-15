@@ -81,7 +81,6 @@ class Hardswish(nn.Module):  # export-friendly version of nn.Hardswish()
         # return x * F.hardsigmoid(x)  # for torchscript and CoreML
         return x * F.hardtanh(x + 3, 0., 6.) / 6.  # for torchscript, CoreML and ONNX
 
-
 class Conv(nn.Module):
     # Standard convolution
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1, act=True):  # ch_in, ch_out, kernel, stride, padding, groups
