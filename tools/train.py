@@ -156,11 +156,18 @@ def main():
         if os.path.exists(cfg.MODEL.PRETRAINED):
             logger.info("=> loading model '{}'".format(cfg.MODEL.PRETRAINED))
             checkpoint = torch.load(cfg.MODEL.PRETRAINED)
-            begin_epoch = checkpoint['epoch']
+            # begin_epoch = checkpoint['epoch']
             # best_perf = checkpoint['perf']
-            last_epoch = checkpoint['epoch']
+            # last_epoch = checkpoint['epoch']
+            
+            # remove the segmentation head (da, ll)
+            state_dict = checkpoint['state_dict']
+            head_layer = [k for k in state_dict.keys() if ('33' in k) or ('42' in k)]
+            for k in head_layer:
+                del state_dict[k]
+            
             model.load_state_dict(checkpoint['state_dict'])
-            optimizer.load_state_dict(checkpoint['optimizer'])
+            # optimizer.load_state_dict(checkpoint['optimizer'])
             logger.info("=> loaded checkpoint '{}' (epoch {})".format(
                 cfg.MODEL.PRETRAINED, checkpoint['epoch']))
             #cfg.NEED_AUTOANCHOR = False     #disable autoanchor
