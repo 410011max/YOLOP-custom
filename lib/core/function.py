@@ -76,6 +76,8 @@ def train(cfg, train_loader, model, criterion, optimizer, scaler, epoch, num_bat
             outputs = model(input)
             print(outputs[1].size())
             print(target[1].size())
+
+
             total_loss, head_losses = criterion(outputs, target, shapes,model)
             # print(head_losses)
 
