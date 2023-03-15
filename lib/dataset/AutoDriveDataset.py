@@ -98,16 +98,12 @@ class AutoDriveDataset(Dataset):
         data = self.db[idx]
         img = cv2.imread(data["image"], cv2.IMREAD_COLOR | cv2.IMREAD_IGNORE_ORIENTATION)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        # seg_label = cv2.imread(data["mask"], 0)
-        if self.cfg.num_seg_class == 3:
-            seg_label = cv2.imread(data["mask"])
-        else:
-            seg_label = cv2.imread(data["mask"], 0)
+
+        seg_label = cv2.imread(data["mask"], 0)
         lane_label = cv2.imread(data["lane"], 0)
-        #print(lane_label.shape)
-        # print(seg_label.shape)
         # print(lane_label.shape)
         # print(seg_label.shape)
+
         resized_shape = self.inputsize
         if isinstance(resized_shape, list):
             resized_shape = max(resized_shape)
@@ -196,45 +192,36 @@ class AutoDriveDataset(Dataset):
         # seg_label = np.ascontiguousarray(seg_label)
         # if idx == 0:
         #     print(seg_label[:,:,0])
-
-        if self.cfg.num_seg_class == 3:
-            _,seg0 = cv2.threshold(seg_label[:,:,0],128,255,cv2.THRESH_BINARY)
-            _,seg1 = cv2.threshold(seg_label[:,:,1],1,255,cv2.THRESH_BINARY)
-            _,seg2 = cv2.threshold(seg_label[:,:,2],1,255,cv2.THRESH_BINARY)
-        else:
-            _,seg1 = cv2.threshold(seg_label,1,255,cv2.THRESH_BINARY)
-            _,seg2 = cv2.threshold(seg_label,1,255,cv2.THRESH_BINARY_INV)
-        _,lane1 = cv2.threshold(lane_label,1,255,cv2.THRESH_BINARY)
-        _,lane2 = cv2.threshold(lane_label,1,255,cv2.THRESH_BINARY_INV)
-#        _,seg2 = cv2.threshold(seg_label[:,:,2],1,255,cv2.THRESH_BINARY)
-        # # seg1[cutout_mask] = 0
-        # # seg2[cutout_mask] = 0
         
-        # seg_label /= 255
-        # seg0 = self.Tensor(seg0)
-        if self.cfg.num_seg_class == 3:
-            seg0 = self.Tensor(seg0)
-        seg1 = self.Tensor(seg1)
-        seg2 = self.Tensor(seg2)
+        # _,seg1 = cv2.threshold(seg_label,1,255,cv2.THRESH_BINARY)
+        # _,seg2 = cv2.threshold(seg_label,1,255,cv2.THRESH_BINARY_INV)
+        # _,lane1 = cv2.threshold(lane_label,1,255,cv2.THRESH_BINARY)
+        # _,lane2 = cv2.threshold(lane_label,1,255,cv2.THRESH_BINARY_INV)
+
         # seg1 = self.Tensor(seg1)
         # seg2 = self.Tensor(seg2)
-        lane1 = self.Tensor(lane1)
-        lane2 = self.Tensor(lane2)
+
+        # lane1 = self.Tensor(lane1)
+        # lane2 = self.Tensor(lane2)
 
         # seg_label = torch.stack((seg2[0], seg1[0]),0)
-        if self.cfg.num_seg_class == 3:
-            seg_label = torch.stack((seg0[0],seg1[0],seg2[0]),0)
-        else:
-            seg_label = torch.stack((seg2[0], seg1[0]),0)
-            
-        lane_label = torch.stack((lane2[0], lane1[0]),0)
-        # _, gt_mask = torch.max(seg_label, 0)
-        # _ = show_seg_result(img, gt_mask, idx, 0, save_dir='debug', is_gt=True)
+        # lane_label = torch.stack((lane2[0], lane1[0]),0)
         
+        # new encoding method
+        main_lane = self.Tensor(seg_label == 1)
+        alter_lane = self.Tensor(seg_label == 2)
+        double = self.Tensor(seg_label == 3)
+        dash = self.Tensor(seg_label == 4)
+        single = self.Tensor(seg_label == 5)
+        bk_da = self.Tensor((seg_label == 0) | (seg_label >= 3))
+        bk_ll = self.Tensor(seg_label < 3)
+
+        seg_label = torch.stack((bk_da, main_lane, alter_lane), dim=0)
+        lane_label = torch.stack((bk_ll, double, dash, single), dim=0)
 
         target = [labels_out, seg_label, lane_label]
         img = self.transform(img)
-
+        
         return img, target, data["image"], shapes
 
     def select_data(self, db):
