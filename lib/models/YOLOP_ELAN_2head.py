@@ -18,28 +18,27 @@ from lib.core.evaluate import SegmentationMetric
 from lib.utils.utils import time_synchronized
 
 
-# The lane line and the driving area segment branches without share information with each other and without link
 YOLOP = [
 [24, 33, 42],   #Det_out_idx, Da_Segout_idx, LL_Segout_idx
 [ -1, Focus, [3, 32, 3]],   #0
-[ -1, Conv, [32, 64, 3, 2]],    #1  P1/2
+[ -1, Conv, [32, 64, 3, 2]],    #1
 [ -1, BottleneckCSP, [64, 64, 1]],  #2
-[ -1, Conv, [64, 128, 3, 2]],   #3  P2/4
+[ -1, Conv, [64, 128, 3, 2]],   #3
 [ -1, BottleneckCSP, [128, 128, 3]],    #4
-[ -1, Conv, [128, 256, 3, 2]],  #5  P3/8
+[ -1, Conv, [128, 256, 3, 2]],  #5
 [ -1, BottleneckCSP, [256, 256, 3]],    #6
-[ -1, Conv, [256, 512, 3, 2]],  #7  P4/16
-[ -1, SPP, [512, 512, [5, 9, 13]]],     #8 
-[ -1, BottleneckCSP, [512, 512, 1, False]],   #9
+[ -1, Conv, [256, 512, 3, 2]],  #7
+[ -1, SPP, [512, 512, [5, 9, 13]]],     #8
+[ -1, BottleneckCSP, [512, 512, 1, False]],     #9
 [ -1, Conv,[512, 256, 1, 1]],   #10
 [ -1, Upsample, [None, 2, 'nearest']],  #11
 [ [-1, 6], Concat, [1]],    #12
-[ -1, BottleneckCSP, [512, 256, 1, False]],  #13
+[ -1, BottleneckCSP, [512, 256, 1, False]], #13
 [ -1, Conv, [256, 128, 1, 1]],  #14
 [ -1, Upsample, [None, 2, 'nearest']],  #15
-[ [-1,4], Concat, [1]],    #16         #Encoder
+[ [-1,4], Concat, [1]],     #16         #Encoder
 
-[ 16, BottleneckCSP, [256, 128, 1, False]],     #17
+[ -1, BottleneckCSP, [256, 128, 1, False]],     #17
 [ -1, Conv, [128, 128, 3, 2]],      #18
 [ [-1, 14], Concat, [1]],       #19
 [ -1, BottleneckCSP, [256, 256, 1, False]],     #20
@@ -56,7 +55,7 @@ YOLOP = [
 [ -1, Conv, [32, 16, 3, 1]],    #30
 [ -1, BottleneckCSP, [16, 8, 1, False]],    #31
 [ -1, Upsample, [None, 2, 'nearest']],  #32
-[ -1, Conv, [8, 3, 3, 1]], #33 Driving area segmentation head
+[ -1, Conv, [8, 2, 3, 1]], #33 Driving area segmentation head
 
 [ 16, Conv, [256, 128, 3, 1]],   #34
 [ -1, Upsample, [None, 2, 'nearest']],  #35
@@ -66,7 +65,7 @@ YOLOP = [
 [ -1, Conv, [32, 16, 3, 1]],    #39
 [ -1, BottleneckCSP, [16, 8, 1, False]],    #40
 [ -1, Upsample, [None, 2, 'nearest']],  #41
-[ -1, Conv, [8, 4, 3, 1]] #42 Lane line segmentation head
+[ -1, Conv, [8, 2, 3, 1]] #42 Lane line segmentation head
 ]
 
 
@@ -85,7 +84,6 @@ class MCnet(nn.Module):
             block = eval(block) if isinstance(block, str) else block  # eval strings
             if block is Detect:
                 self.detector_index = i
-            print(block)
             block_ = block(*args)
             block_.index, block_.from_ = i, from_
             layers.append(block_)
@@ -164,4 +162,11 @@ if __name__ == "__main__":
     print('\nSegmentation:')
     print(dring_area_seg.shape)
     print(lane_line_seg.shape)
+
+    print("\nYOLOP")
+    print(model)
+
+    print("\nYOLOPv2:")
+    model2 = torch.load('yolov7.pt')
+    print(model2)
  

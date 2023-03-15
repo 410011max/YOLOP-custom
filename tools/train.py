@@ -27,12 +27,12 @@ from lib.core.loss import get_loss
 from lib.core.function import train
 from lib.core.function import validate
 from lib.core.general import fitness
-from lib.models import get_net
 from lib.utils import is_parallel
 from lib.utils.utils import get_optimizer
 from lib.utils.utils import save_checkpoint
 from lib.utils.utils import create_logger, select_device
 from lib.utils import run_anchor
+from lib.models import get_net
 
 
 def parse_args():
@@ -58,6 +58,10 @@ def parse_args():
                         default='')
     parser.add_argument('--prevModelDir',
                         help='prev Model directory',
+                        type=str,
+                        default='')
+    parser.add_argument('--weights',
+                        help='load pretrained model',
                         type=str,
                         default='')
 
@@ -119,6 +123,7 @@ def main():
     
     print("load model to device")
     model = get_net(cfg).to(device)
+    print(model)
     # print("load finished")
     #model = model.to(device)
     # print("finish build model")
@@ -159,7 +164,9 @@ def main():
             logger.info("=> loaded checkpoint '{}' (epoch {})".format(
                 cfg.MODEL.PRETRAINED, checkpoint['epoch']))
             #cfg.NEED_AUTOANCHOR = False     #disable autoanchor
-        
+        elif(cfg.MODEL.PRETRAINED):
+            logger.info("=> can't find '{}' ".format(cfg.MODEL.PRETRAINED))
+
         if os.path.exists(cfg.MODEL.PRETRAINED_DET):
             logger.info("=> loading model weight in det branch from '{}'".format(cfg.MODEL.PRETRAINED))
             det_idx_range = [str(i) for i in range(0,25)]
@@ -172,7 +179,9 @@ def main():
             model_dict.update(checkpoint_dict)
             model.load_state_dict(model_dict)
             logger.info("=> loaded det branch checkpoint '{}' ".format(checkpoint_file))
-        
+        elif(cfg.MODEL.PRETRAINED_DET):
+            logger.info("=> can't find '{}' ".format(cfg.MODEL.PRETRAINED))
+
         if cfg.AUTO_RESUME and os.path.exists(checkpoint_file):
             logger.info("=> loading checkpoint '{}'".format(checkpoint_file))
             checkpoint = torch.load(checkpoint_file)
