@@ -74,10 +74,6 @@ def train(cfg, train_loader, model, criterion, optimizer, scaler, epoch, num_bat
             target = assign_target
         with amp.autocast(enabled=device.type != 'cpu'):
             outputs = model(input)
-            print(outputs[1].size())
-            print(target[1].size())
-
-
             total_loss, head_losses = criterion(outputs, target, shapes,model)
             # print(head_losses)
 
@@ -162,8 +158,8 @@ def validate(epoch,config, val_loader, val_dataset, model, criterion, output_dir
 
     seen =  0 
     confusion_matrix = ConfusionMatrix(nc=model.nc) #detector confusion matrix
-    da_metric = SegmentationMetric(config.num_seg_class) #segment confusion matrix    
-    ll_metric = SegmentationMetric(2) #segment confusion matrix
+    da_metric = SegmentationMetric(config.num_da_class) #segment confusion matrix    
+    ll_metric = SegmentationMetric(config.num_ll_class) #segment confusion matrix
 
     names = {k: v for k, v in enumerate(model.names if hasattr(model, 'names') else model.module.names)}
     colors = [[random.randint(0, 255) for _ in range(3)] for _ in names]
@@ -236,7 +232,8 @@ def validate(epoch,config, val_loader, val_dataset, model, criterion, output_dir
 
             ll_metric.reset()
             ll_metric.addBatch(ll_predict.cpu(), ll_gt.cpu())
-            ll_acc = ll_metric.lineAccuracy()
+            # ll_acc = ll_metric.lineAccuracy()
+            ll_acc = ll_metric.pixelAccuracy()
             ll_IoU = ll_metric.IntersectionOverUnion()
             ll_mIoU = ll_metric.meanIntersectionOverUnion()
 

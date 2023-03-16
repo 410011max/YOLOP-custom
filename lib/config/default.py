@@ -5,14 +5,16 @@ from yacs.config import CfgNode as CN
 _C = CN()
 
 _C.LOG_DIR = 'runs/'
-_C.GPUS = (0,1)     
+_C.GPUS = [0]     
 _C.WORKERS = 8
 _C.PIN_MEMORY = False
 _C.PRINT_FREQ = 20
-_C.AUTO_RESUME =False       # Resume from the last training interrupt
+_C.AUTO_RESUME = False       # Resume from the last training interrupt
 _C.NEED_AUTOANCHOR = False      # Re-select the prior anchor(k-means)    When training from scratch (epoch=0), set it to be ture!
 _C.DEBUG = False
-_C.num_seg_class = 3 ## da metrics
+_C.num_seg_class = 3
+_C.num_da_class = 3 ## da metrics
+_C.num_ll_class = 4 ## ll metrics
 
 # Cudnn related params
 _C.CUDNN = CN()
@@ -36,7 +38,7 @@ _C.MODEL.EXTRA = CN(new_allowed=True)
 _C.LOSS = CN(new_allowed=True)
 _C.LOSS.LOSS_NAME = ''
 _C.LOSS.MULTI_HEAD_LAMBDA = None
-_C.LOSS.FL_GAMMA = 0.0  # focal loss gamma
+_C.LOSS.FL_GAMMA = 2.0  # focal loss gamma
 _C.LOSS.CLS_POS_WEIGHT = 1.0  # classification loss positive weights
 _C.LOSS.OBJ_POS_WEIGHT = 1.0  # object loss positive weights
 _C.LOSS.SEG_POS_WEIGHT = 1.0  # segmentation loss positive weights
@@ -93,7 +95,7 @@ _C.TRAIN.BEGIN_EPOCH = 0
 _C.TRAIN.END_EPOCH = 240
 
 _C.TRAIN.VAL_FREQ = 1
-_C.TRAIN.BATCH_SIZE_PER_GPU =24
+_C.TRAIN.BATCH_SIZE_PER_GPU = 32
 _C.TRAIN.SHUFFLE = True
 
 _C.TRAIN.IOU_THRESHOLD = 0.2

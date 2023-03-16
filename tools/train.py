@@ -165,8 +165,8 @@ def main():
             head_layer = [k for k in state_dict.keys() if ('33' in k) or ('42' in k)]
             for k in head_layer:
                 del state_dict[k]
-            
-            model.load_state_dict(checkpoint['state_dict'])
+                
+            model.load_state_dict(state_dict, strict=False)
             # optimizer.load_state_dict(checkpoint['optimizer'])
             logger.info("=> loaded checkpoint '{}' (epoch {})".format(
                 cfg.MODEL.PRETRAINED, checkpoint['epoch']))

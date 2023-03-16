@@ -216,8 +216,14 @@ class AutoDriveDataset(Dataset):
         bk_da = self.Tensor((seg_label == 0) | (seg_label >= 3))
         bk_ll = self.Tensor(seg_label < 3)
 
-        seg_label = torch.stack((bk_da, main_lane, alter_lane), dim=0)
-        lane_label = torch.stack((bk_ll, double, dash, single), dim=0)
+        main_lane = self.Tensor(seg_label > 0)
+        bk_da = self.Tensor(seg_label == 0)
+        double = self.Tensor(lane_label > 0)
+        bk_ll = self.Tensor(lane_label == 0)
+
+        seg_label = torch.cat((bk_da, main_lane, alter_lane), dim=0).float()
+        lane_label = torch.cat((bk_ll, double, dash, single), dim=0).float()
+
 
         target = [labels_out, seg_label, lane_label]
         img = self.transform(img)

@@ -85,7 +85,7 @@ class MCnet(nn.Module):
             block = eval(block) if isinstance(block, str) else block  # eval strings
             if block is Detect:
                 self.detector_index = i
-            print(block)
+
             block_ = block(*args)
             block_.index, block_.from_ = i, from_
             layers.append(block_)

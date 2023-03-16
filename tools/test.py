@@ -87,6 +87,14 @@ def main():
     checkpoint_dict = checkpoint['state_dict']
     # checkpoint_dict = {k: v for k, v in checkpoint['state_dict'].items() if k.split(".")[1] in det_idx_range}
     model_dict.update(checkpoint_dict)
+    
+    # remove the segmentation head (da, ll)
+    # state_dict = checkpoint['state_dict']
+    # head_layer = [k for k in state_dict.keys() if ('33' in k) or ('42' in k)]
+    # for k in head_layer:
+    #     del state_dict[k]
+    # model.load_state_dict(state_dict, strict=False)
+    
     model.load_state_dict(model_dict)
     logger.info("=> loaded checkpoint '{}' ".format(checkpoint_file))
 
