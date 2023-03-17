@@ -123,7 +123,7 @@ def main():
     
     print("load model to device")
     model = get_net(cfg).to(device)
-    print(model)
+    # print(model)
     # print("load finished")
     #model = model.to(device)
     # print("finish build model")
@@ -162,8 +162,12 @@ def main():
             
             # remove the segmentation head (da, ll)
             state_dict = checkpoint['state_dict']
-            head_layer = [k for k in state_dict.keys() if ('33' in k) or ('42' in k)]
-            for k in head_layer:
+            detect_layer = [k for k in state_dict.keys() if '24' in k]
+            for k in detect_layer:
+                if 'm' in k: # preserved anchors
+                    del state_dict[k]
+            seg_layer = [k for k in state_dict.keys() if ('33' in k) or ('42' in k)]
+            for k in seg_layer:
                 del state_dict[k]
                 
             model.load_state_dict(state_dict, strict=False)
@@ -265,7 +269,7 @@ def main():
 
     # assign model params
     model.gr = 1.0
-    model.nc = 1
+    model.nc = 4
     # print('bulid model finished')
 
     print("begin to load data")

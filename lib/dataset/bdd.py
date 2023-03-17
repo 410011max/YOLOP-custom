@@ -2,10 +2,9 @@ import numpy as np
 import json
 
 from .AutoDriveDataset import AutoDriveDataset
-from .convert import convert, id_dict, id_dict_single
+from .convert import convert, id_dict_Aidea
 from tqdm import tqdm
 
-single_cls = True       # just detect vehicle
 
 class BddDataset(AutoDriveDataset):
     def __init__(self, cfg, is_train, inputsize, transform=None):
@@ -41,22 +40,20 @@ class BddDataset(AutoDriveDataset):
             gt = np.zeros((len(data), 5))
             for idx, obj in enumerate(data):
                 category = obj['category']
-                if category == "traffic light":
-                    color = obj['attributes']['trafficLightColor']
-                    category = "tl_" + color
-                if category in id_dict.keys():
+                # if category == "traffic light":
+                #     color = obj['attributes']['trafficLightColor']
+                #     category = "tl_" + color
+                if category in id_dict_Aidea.keys():
                     x1 = float(obj['box2d']['x1'])
                     y1 = float(obj['box2d']['y1'])
                     x2 = float(obj['box2d']['x2'])
                     y2 = float(obj['box2d']['y2'])
-                    cls_id = id_dict[category]
-                    if single_cls:
-                         cls_id=0
+                    cls_id = id_dict_Aidea[category]
+
                     gt[idx][0] = cls_id
                     box = convert((width, height), (x1, x2, y1, y2))
                     gt[idx][1:] = list(box)
                 
-
             rec = [{
                 'image': image_path,
                 'label': gt,
@@ -72,11 +69,9 @@ class BddDataset(AutoDriveDataset):
         remain = []
         for obj in data:
             if 'box2d' in obj.keys():  # obj.has_key('box2d'):
-                if single_cls:
-                    if obj['category'] in id_dict_single.keys():
-                        remain.append(obj)
-                else:
+                if obj['category'] in id_dict_Aidea.keys():
                     remain.append(obj)
+                        
         return remain
 
     def evaluate(self, cfg, preds, output_dir, *args, **kwargs):

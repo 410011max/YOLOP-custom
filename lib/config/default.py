@@ -52,13 +52,19 @@ _C.LOSS.LL_IOU_GAIN = 0.2 # lane line iou loss gain
 
 # DATASET related params
 _C.DATASET = CN(new_allowed=True)
-_C.DATASET.DATAROOT = '/mnt/disk1/BDD100K/images/100k'       # the path of images folder
-_C.DATASET.LABELROOT = '/mnt/disk1/BDD100K/labels/100k'      # the path of det_annotations folder
-_C.DATASET.MASKROOT = '/mnt/disk1/BDD100K/bdd_seg_gt'        # the path of da_seg_annotations folder
-_C.DATASET.LANEROOT = '/mnt/disk1/BDD100K/bdd_lane_gt'       # the path of ll_seg_annotations folder
+_C.DATASET.DATAROOT = '/mnt/disk1/BDD100K/images'            # the path of images folder
+# _C.DATASET.LABELROOT = '/mnt/disk1/BDD100K/labels'      # the path of det_annotations folder
+# _C.DATASET.MASKROOT =  '/mnt/disk1/BDD100K/bdd_seg_gt'        # the path of da_seg_annotations folder
+# _C.DATASET.LANEROOT =  '/mnt/disk1/BDD100K/bdd_lane_gt'       # the path of ll_seg_annotations folder
+_C.DATASET.LABELROOT = '/mnt/disk1/BDD100K/contest_datasets/det_annot'      # the path of det_annotations folder
+_C.DATASET.MASKROOT =  '/mnt/disk1/BDD100K/contest_datasets/seg'        # the path of da_seg_annotations folder
+_C.DATASET.LANEROOT =  '/mnt/disk1/BDD100K/contest_datasets/seg'       # the path of ll_seg_annotations folder
+# _C.DATASET.LABELROOT = '/mnt/disk1/BDD100K/temp_test/det_annot'      # the path of det_annotations folder
+# _C.DATASET.MASKROOT =  '/mnt/disk1/BDD100K/temp_test/seg'        # the path of da_seg_annotations folder
+# _C.DATASET.LANEROOT =  '/mnt/disk1/BDD100K/temp_test/seg'       # the path of ll_seg_annotations folder
 _C.DATASET.DATASET = 'BddDataset'
-_C.DATASET.TRAIN_SET = 'train'
-_C.DATASET.TEST_SET = 'val'
+_C.DATASET.TRAIN_SET = 'train_val'
+_C.DATASET.TEST_SET = 'train_val'
 _C.DATASET.DATA_FORMAT = 'jpg'
 _C.DATASET.SELECT_DATA = False
 _C.DATASET.ORG_IMG_SIZE = [720, 1280]
@@ -120,7 +126,7 @@ _C.TRAIN.PLOT = True                #
 
 # testing
 _C.TEST = CN(new_allowed=True)
-_C.TEST.BATCH_SIZE_PER_GPU = 24
+_C.TEST.BATCH_SIZE_PER_GPU = 32
 _C.TEST.MODEL_FILE = ''
 _C.TEST.SAVE_JSON = False
 _C.TEST.SAVE_TXT = False

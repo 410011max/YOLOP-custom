@@ -224,7 +224,7 @@ _C.TRAIN.DET_ONLY = False          # Only train detection task
 开始训练:
 
 ```shell
-python tools/train.py
+python tools/train.py --weights weights/End-to-end.pth
 ```
 多GPU训练:
 ```
