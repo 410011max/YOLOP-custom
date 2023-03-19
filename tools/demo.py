@@ -86,7 +86,7 @@ def detect(cfg,  opt):
     
     submission = {'image_filename':[], 'label_id':[], 'x':[], 'y':[], 'w':[], 'h':[], 'confidence':[]}
     
-    for i, (path, img, img_det, vid_cap,shapes) in tqdm(enumerate(dataset),total = len(dataset)):
+    for i, (path, img, img_det, vid_cap, shapes) in tqdm(enumerate(dataset), total = len(dataset)):
         img = transform(img).to(device)
         img = img.half() if half else img.float()  # uint8 to fp16/32
         if img.ndimension() == 3:
@@ -142,9 +142,8 @@ def detect(cfg,  opt):
                 plot_one_box(xyxy, img_det , label=label_det_pred, color=colors[int(cls)], line_thickness=2)
         
         if dataset.mode == 'images':
-            cv2.imwrite(save_path[:-8] + "visiulize_" + save_path[-8:], img_det)
-            cv2.imwrite(save_path,img_det)
-
+            # cv2.imwrite(save_path[:-4] + "_visiulize.jpg", img_det)
+            pass
 
         elif dataset.mode == 'video':
             if vid_path != save_path:  # new video
@@ -163,25 +162,26 @@ def detect(cfg,  opt):
             cv2.waitKey(1)  # 1 millisecond
 
         # Save segmentation result
-        seg_mask = np.where(ll_seg_mask > 0, ll_seg_mask + 2, da_seg_mask)
-        seg_mask = seg_mask.astype(np.uint8)
-        # seg_mask = cv2.resize(seg_mask, (1280,720), interpolation=cv2.INTER_LINEAR)
         if not 'tp' in os.path.basename(save_path):
+            seg_mask = np.where(ll_seg_mask > 0, ll_seg_mask + 2, da_seg_mask)
+            seg_mask = seg_mask.astype(np.uint8)
+            # seg_mask = cv2.merge([seg_mask, seg_mask, seg_mask])
             cv2.imwrite(save_path[:-3] + 'png', seg_mask)
 
-        # Detection result
-        for *xyxy,conf,cls in reversed(det):
-            x1, y1, x2, y2 = xyxy
-            w = x2 - x1
-            h = y2 - y1
+        # Save Detection result
+        if 'tp' in os.path.basename(save_path):
+            for *xyxy,conf,cls in reversed(det):
+                x1, y1, x2, y2 = xyxy
+                w = x2 - x1
+                h = y2 - y1
 
-            submission['image_filename'].append(os.path.basename(save_path))
-            submission['label_id'].append(cls.item() + 1)
-            submission['x'].append(x1.item())
-            submission['y'].append(y1.item())
-            submission['w'].append(w.item())
-            submission['h'].append(h.item())
-            submission['confidence'].append(conf.item())
+                submission['image_filename'].append(os.path.basename(save_path))
+                submission['label_id'].append(cls.item() + 1)
+                submission['x'].append(x1.item())
+                submission['y'].append(y1.item())
+                submission['w'].append(w.item())
+                submission['h'].append(h.item())
+                submission['confidence'].append(conf.item())
 
     submission = pd.DataFrame(submission)
     submission.to_csv(os.path.join(Path(opt.save_dir), 'submission.csv'), index=False)

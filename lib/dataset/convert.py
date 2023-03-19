@@ -15,7 +15,7 @@ id_dict = {'person': 0, 'rider': 1, 'car': 2, 'bus': 3, 'truck': 4,
 'bike': 5, 'motor': 6, 'tl_green': 7, 'tl_red': 8, 
 'tl_yellow': 9, 'tl_none': 10, 'traffic sign': 11, 'train': 12}
 
-id_dict_Aidea = {'motor': 0, 'vehicle': 1, 'person': 2,'bike': 3}
+id_dict_Aidea = {'vehicle': 0, 'person': 1, 'motor': 2, 'bike': 3}
    
 
 def convert(size, box):
