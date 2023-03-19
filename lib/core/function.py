@@ -47,10 +47,9 @@ def train(cfg, train_loader, model, criterion, optimizer, scaler, epoch, num_bat
 
     # switch to train mode
     model.train()
-    start = time.time()
+
     for i, (input, target, paths, shapes) in enumerate(train_loader):
-        intermediate = time.time()
-        #print('tims:{}'.format(intermediate-start))
+        start = time.time()
         num_iter = i + num_batch * (epoch - 1)
 
         if num_iter < num_warmup:
@@ -65,7 +64,9 @@ def train(cfg, train_loader, model, criterion, optimizer, scaler, epoch, num_bat
                 if 'momentum' in x:
                     x['momentum'] = np.interp(num_iter, xi, [cfg.TRAIN.WARMUP_MOMENTUM, cfg.TRAIN.MOMENTUM])
 
+        # data_time.update(time.time() - start)
         data_time.update(time.time() - start)
+        
         if not cfg.DEBUG:
             input = input.to(device, non_blocking=True)
             assign_target = []
@@ -93,12 +94,12 @@ def train(cfg, train_loader, model, criterion, optimizer, scaler, epoch, num_bat
 
             # measure elapsed time
             batch_time.update(time.time() - start)
-            end = time.time()
+
             if i % cfg.PRINT_FREQ == 0:
                 msg = 'Epoch: [{0}][{1}/{2}]\t' \
-                      'Time {batch_time.val:.3f}s ({batch_time.avg:.3f}s)\t' \
+                      'Time {batch_time.sum:.3f}s ({batch_time.val:.3f}s)\t' \
                       'Speed {speed:.1f} samples/s\t' \
-                      'Data {data_time.val:.3f}s ({data_time.avg:.3f}s)\t' \
+                      'Data {data_time.sum:.3f}s ({data_time.val:.3f}s)\t' \
                       'Loss {loss.val:.5f} ({loss.avg:.5f})'.format(
                           epoch, i, len(train_loader), batch_time=batch_time,
                           speed=input.size(0)/batch_time.val,

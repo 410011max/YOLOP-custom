@@ -252,7 +252,7 @@ python tools/test.py --weights weights/End-to-end.pth
 测试所使用的的图片存储在 `--source`下, 然后测试结果会保存在 `--save-dir`下：
 
 ```shell
-python tools/demo.py --source inference/images
+python tools/demo.py --device 0 --source /mnt/disk1/BDD100K/Public_Testing_Dataset_all/
 ```
 
 

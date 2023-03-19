@@ -29,6 +29,7 @@ YOLOP = [
 [ -1, Conv, [128, 256, 3, 2]],  #5  P3/8
 [ -1, BottleneckCSP, [256, 256, 3]],    #6
 [ -1, Conv, [256, 512, 3, 2]],  #7  P4/16
+
 [ -1, SPP, [512, 512, [5, 9, 13]]],     #8 
 [ -1, BottleneckCSP, [512, 512, 1, False]],   #9
 [ -1, Conv,[512, 256, 1, 1]],   #10
@@ -66,7 +67,7 @@ YOLOP = [
 [ -1, Conv, [32, 16, 3, 1]],    #39
 [ -1, BottleneckCSP, [16, 8, 1, False]],    #40
 [ -1, Upsample, [None, 2, 'nearest']],  #41
-[ -1, Conv, [8, 4, 3, 1]] #42 Lane line segmentation head
+[ -1, Conv, [8, 4, 3, 1, None, 1, False]] #42 Lane line segmentation head
 ]
 
 
@@ -124,7 +125,8 @@ class MCnet(nn.Module):
                 x = cache[block.from_] if isinstance(block.from_, int) else [x if j == -1 else cache[j] for j in block.from_]       #calculate concat detect
             x = block(x)
             if i in self.seg_out_idx:     #save driving area segment result
-                m=nn.Sigmoid()
+                # m = nn.Sigmoid()
+                m = nn.Softmax()
                 out.append(m(x))
             if i == self.detector_index:
                 det_out = x

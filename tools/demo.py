@@ -5,6 +5,8 @@ import time
 from pathlib import Path
 import imageio
 
+import pandas as pd
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR)
 
@@ -38,7 +40,7 @@ transform=transforms.Compose([
         ])
 
 
-def detect(cfg,opt):
+def detect(cfg,  opt):
 
     logger, _, _ = create_logger(
         cfg, cfg.LOG_DIR, 'demo')
@@ -71,7 +73,6 @@ def detect(cfg,opt):
     names = model.module.names if hasattr(model, 'module') else model.names
     colors = [[random.randint(0, 255) for _ in range(3)] for _ in range(len(names))]
 
-
     # Run inference
     t0 = time.time()
 
@@ -82,6 +83,8 @@ def detect(cfg,opt):
 
     inf_time = AverageMeter()
     nms_time = AverageMeter()
+    
+    submission = {'image_filename':[], 'label_id':[], 'x':[], 'y':[], 'w':[], 'h':[], 'confidence':[]}
     
     for i, (path, img, img_det, vid_cap,shapes) in tqdm(enumerate(dataset),total = len(dataset)):
         img = transform(img).to(device)
@@ -128,8 +131,9 @@ def detect(cfg,opt):
         # Lane line post-processing
         #ll_seg_mask = morphological_process(ll_seg_mask, kernel_size=7, func_type=cv2.MORPH_OPEN)
         #ll_seg_mask = connect_lane(ll_seg_mask)
-
-        img_det = show_seg_result(img_det, (da_seg_mask, ll_seg_mask), _, _, is_demo=True)
+        
+        
+        img_det = show_seg_result(img_det, (da_seg_mask, ll_seg_mask), _, _, save_dir=save_path, is_demo=True)
 
         if len(det):
             det[:,:4] = scale_coords(img.shape[2:],det[:,:4],img_det.shape).round()
@@ -138,7 +142,9 @@ def detect(cfg,opt):
                 plot_one_box(xyxy, img_det , label=label_det_pred, color=colors[int(cls)], line_thickness=2)
         
         if dataset.mode == 'images':
+            cv2.imwrite(save_path[:-8] + "visiulize_" + save_path[-8:], img_det)
             cv2.imwrite(save_path,img_det)
+
 
         elif dataset.mode == 'video':
             if vid_path != save_path:  # new video
@@ -156,6 +162,30 @@ def detect(cfg,opt):
             cv2.imshow('image', img_det)
             cv2.waitKey(1)  # 1 millisecond
 
+        # Save segmentation result
+        seg_mask = np.where(ll_seg_mask > 0, ll_seg_mask + 2, da_seg_mask)
+        seg_mask = seg_mask.astype(np.uint8)
+        # seg_mask = cv2.resize(seg_mask, (1280,720), interpolation=cv2.INTER_LINEAR)
+        if not 'tp' in os.path.basename(save_path):
+            cv2.imwrite(save_path[:-3] + 'png', seg_mask)
+
+        # Detection result
+        for *xyxy,conf,cls in reversed(det):
+            x1, y1, x2, y2 = xyxy
+            w = x2 - x1
+            h = y2 - y1
+
+            submission['image_filename'].append(os.path.basename(save_path))
+            submission['label_id'].append(cls.item() + 1)
+            submission['x'].append(x1.item())
+            submission['y'].append(y1.item())
+            submission['w'].append(w.item())
+            submission['h'].append(h.item())
+            submission['confidence'].append(conf.item())
+
+    submission = pd.DataFrame(submission)
+    submission.to_csv(os.path.join(Path(opt.save_dir), 'submission.csv'), index=False)
+
     print('Results saved to %s' % Path(opt.save_dir))
     print('Done. (%.3fs)' % (time.time() - t0))
     print('inf : (%.4fs/frame)   nms : (%.4fs/frame)' % (inf_time.avg,nms_time.avg))
@@ -165,8 +195,8 @@ def detect(cfg,opt):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', nargs='+', type=str, default='weights/End-to-end.pth', help='model.pth path(s)')
-    parser.add_argument('--source', type=str, default='inference/videos', help='source')  # file/folder   ex:inference/images
+    parser.add_argument('--weights', nargs='+', type=str, default='runs/BddDataset/checkpoint.pth', help='model.pth path(s)')
+    parser.add_argument('--source', type=str, default='inference/images', help='source')  # file/folder   ex:inference/images
     parser.add_argument('--img-size', type=int, default=640, help='inference size (pixels)')
     parser.add_argument('--conf-thres', type=float, default=0.25, help='object confidence threshold')
     parser.add_argument('--iou-thres', type=float, default=0.45, help='IOU threshold for NMS')

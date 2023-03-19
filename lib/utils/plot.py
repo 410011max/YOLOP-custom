@@ -27,28 +27,29 @@ def show_seg_result(img, result, index, epoch, save_dir=None, is_ll=False,palett
     # seg = result[0]
     if palette is None:
         palette = np.random.randint(
-                0, 255, size=(3, 3))
+                0, 255, size=(6, 3))
     palette[0] = [0, 0, 0]
     palette[1] = [0, 255, 0]
     palette[2] = [255, 0, 0]
+    palette[3] = [0, 0, 255]
+    palette[4] = [255, 0, 255]
+    palette[5] = [0, 255, 255]
     palette = np.array(palette)
-    assert palette.shape[0] == 3 # len(classes)
+    assert palette.shape[0] == 6 # len(classes)
     assert palette.shape[1] == 3
     assert len(palette.shape) == 2
+    
     
     if not is_demo:
         color_seg = np.zeros((result.shape[0], result.shape[1], 3), dtype=np.uint8)
         for label, color in enumerate(palette):
             color_seg[result == label, :] = color
     else:
-        color_area = np.zeros((result[0].shape[0], result[0].shape[1], 3), dtype=np.uint8)
+        result = np.where(result[1] > 0, result[1] + 2, result[0])
+        color_seg = np.zeros((result.shape[0], result.shape[1], 3), dtype=np.uint8)
         
-        # for label, color in enumerate(palette):
-        #     color_area[result[0] == label, :] = color
-
-        color_area[result[0] == 1] = [0, 255, 0]
-        color_area[result[1] ==1] = [255, 0, 0]
-        color_seg = color_area
+        for label, color in enumerate(palette):
+            color_seg[result == label, :] = color
 
     # convert to BGR
     color_seg = color_seg[..., ::-1]
@@ -78,13 +79,13 @@ def plot_one_box(x, img, color=None, label=None, line_thickness=None):
     color = color or [random.randint(0, 255) for _ in range(3)]
     c1, c2 = (int(x[0]), int(x[1])), (int(x[2]), int(x[3]))
     cv2.rectangle(img, c1, c2, color, thickness=tl, lineType=cv2.LINE_AA)
-    # if label:
-    #     tf = max(tl - 1, 1)  # font thickness
-    #     t_size = cv2.getTextSize(label, 0, fontScale=tl / 3, thickness=tf)[0]
-    #     c2 = c1[0] + t_size[0], c1[1] - t_size[1] - 3
-    #     cv2.rectangle(img, c1, c2, color, -1, cv2.LINE_AA)  # filled
-    #     print(label)
-        # cv2.putText(img, label, (c1[0], c1[1] - 2), 0, tl / 3, [225, 255, 255], thickness=tf, lineType=cv2.LINE_AA)
+    if label:
+        tf = max(tl - 1, 1)  # font thickness
+        t_size = cv2.getTextSize(label, 0, fontScale=tl / 3, thickness=tf)[0]
+        c2 = c1[0] + t_size[0], c1[1] - t_size[1] - 3
+        cv2.rectangle(img, c1, c2, color, -1, cv2.LINE_AA)  # filled
+        # print(label)
+        cv2.putText(img, label, (c1[0], c1[1] - 2), 0, tl / 3, [225, 255, 255], thickness=tf, lineType=cv2.LINE_AA)
 
 
 if __name__ == "__main__":
