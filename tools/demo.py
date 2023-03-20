@@ -29,6 +29,7 @@ from lib.core.general import non_max_suppression, scale_coords
 from lib.utils import plot_one_box,show_seg_result
 from lib.core.function import AverageMeter
 from lib.core.postprocess import morphological_process, connect_lane
+from lib.models_yolov7 import get_net_yolov7
 from tqdm import tqdm
 normalize = transforms.Normalize(
         mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
@@ -52,7 +53,13 @@ def detect(cfg,  opt):
     half = device.type != 'cpu'  # half precision only supported on CUDA
 
     # Load model
-    model = get_net(cfg)
+    if opt.yolov7:
+        if not opt.yolov7_cfg:
+            raise ValueError("Please provide configuration of yolov7")
+        model = get_net_yolov7(opt.yolov7_cfg).to(device)
+    else:
+        model = get_net(cfg).to(device)
+    #model = get_net(cfg)
     checkpoint = torch.load(opt.weights, map_location= device)
     model.load_state_dict(checkpoint['state_dict'])
     model = model.to(device)
@@ -142,7 +149,7 @@ def detect(cfg,  opt):
                 plot_one_box(xyxy, img_det , label=label_det_pred, color=colors[int(cls)], line_thickness=2)
         
         if dataset.mode == 'images':
-            # cv2.imwrite(save_path[:-4] + "_visiulize.jpg", img_det)
+            #cv2.imwrite(save_path[:-4] + "_visiulize.jpg", img_det)
             pass
 
         elif dataset.mode == 'video':
@@ -176,11 +183,11 @@ def detect(cfg,  opt):
                 h = y2 - y1
 
                 submission['image_filename'].append(os.path.basename(save_path))
-                submission['label_id'].append(cls.item() + 1)
-                submission['x'].append(x1.item())
-                submission['y'].append(y1.item())
-                submission['w'].append(w.item())
-                submission['h'].append(h.item())
+                submission['label_id'].append(int(cls.item() + 1))
+                submission['x'].append(int(x1.item()))
+                submission['y'].append(int(y1.item()))
+                submission['w'].append(int(w.item()))
+                submission['h'].append(int(h.item()))
                 submission['confidence'].append(conf.item())
 
     submission = pd.DataFrame(submission)
@@ -195,7 +202,7 @@ def detect(cfg,  opt):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', nargs='+', type=str, default='runs/BddDataset/checkpoint.pth', help='model.pth path(s)')
+    parser.add_argument('--weights', type=str, default='runs/BddDataset/checkpoint.pth', help='model.pth path(s)')
     parser.add_argument('--source', type=str, default='inference/images', help='source')  # file/folder   ex:inference/images
     parser.add_argument('--img-size', type=int, default=640, help='inference size (pixels)')
     parser.add_argument('--conf-thres', type=float, default=0.25, help='object confidence threshold')
@@ -204,6 +211,8 @@ if __name__ == '__main__':
     parser.add_argument('--save-dir', type=str, default='inference/output', help='directory to save results')
     parser.add_argument('--augment', action='store_true', help='augmented inference')
     parser.add_argument('--update', action='store_true', help='update all models')
+    parser.add_argument('--yolov7', action='store_true', help='whether to switch to yolo-v7')
+    parser.add_argument('--yolov7-cfg', type=str, help = 'path to the configuration file of yolov7')
     opt = parser.parse_args()
     with torch.no_grad():
         detect(cfg,opt)
