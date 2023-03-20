@@ -33,6 +33,7 @@ from lib.utils.utils import save_checkpoint
 from lib.utils.utils import create_logger, select_device
 from lib.utils import run_anchor
 from lib.models import get_net
+from lib.models_yolov7 import get_net_yolov7
 
 
 def parse_args():
@@ -64,7 +65,8 @@ def parse_args():
                         help='load pretrained model',
                         type=str,
                         default='')
-
+    parser.add_argument('--yolov7', action='store_true', help='whether to switch to yolo-v7')
+    parser.add_argument('--yolov7-cfg', type=str, help = 'path to the configuration file of yolov7')
     parser.add_argument('--sync-bn', action='store_true', help='use SyncBatchNorm, only available in DDP mode')
     parser.add_argument('--local_rank', type=int, default=-1, help='DDP parameter, do not modify')
     parser.add_argument('--conf-thres', type=float, default=0.001, help='object confidence threshold')
@@ -122,8 +124,14 @@ def main():
         dist.init_process_group(backend='nccl', init_method='env://')  # distributed backend
     
     print("load model to device")
-    model = get_net(cfg).to(device)
-    # print(model)
+
+    if args.yolov7:
+        if not args.yolov7_cfg:
+            raise ValueError("Please provide configuration of yolov7")
+        model = get_net_yolov7(args.yolov7_cfg).to(device)
+    else:
+        model = get_net(cfg).to(device)
+    print(model)
     # print("load finished")
     #model = model.to(device)
     # print("finish build model")
@@ -179,17 +187,16 @@ def main():
             logger.info("=> can't find '{}' ".format(cfg.MODEL.PRETRAINED))
 
         if os.path.exists(cfg.MODEL.PRETRAINED_DET):
-            logger.info("=> loading model weight in det branch from '{}'".format(cfg.MODEL.PRETRAINED))
-            det_idx_range = [str(i) for i in range(0,25)]
+            logger.info("=> loading model weight in det branch from '{}'".format(cfg.MODEL.PRETRAINED_DET))
+            det_idx_range = [str(i) for i in range(0,105)]
             model_dict = model.state_dict()
             checkpoint_file = cfg.MODEL.PRETRAINED_DET
             checkpoint = torch.load(checkpoint_file)
-            begin_epoch = checkpoint['epoch']
-            last_epoch = checkpoint['epoch']
-            checkpoint_dict = {k: v for k, v in checkpoint['state_dict'].items() if k.split(".")[1] in det_idx_range}
+            checkpoint_dict = {k: v for k, v in checkpoint.items() if k.split(".")[1] in det_idx_range}
             model_dict.update(checkpoint_dict)
             model.load_state_dict(model_dict)
             logger.info("=> loaded det branch checkpoint '{}' ".format(checkpoint_file))
+            
         elif(cfg.MODEL.PRETRAINED_DET):
             logger.info("=> can't find '{}' ".format(cfg.MODEL.PRETRAINED))
 

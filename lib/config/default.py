@@ -29,7 +29,7 @@ _C.MODEL.NAME = ''
 _C.MODEL.STRU_WITHSHARE = False     #add share_block to segbranch
 _C.MODEL.HEADS_NAME = ['']
 _C.MODEL.PRETRAINED = ""
-_C.MODEL.PRETRAINED_DET = ""
+_C.MODEL.PRETRAINED_DET = "./weights/yolov7_pretrained.pth" # [brian1009] : Add yolov7 pretrained
 _C.MODEL.IMAGE_SIZE = [640, 640]  # width * height, ex: 192 * 256
 _C.MODEL.EXTRA = CN(new_allowed=True)
 
@@ -52,16 +52,10 @@ _C.LOSS.LL_IOU_GAIN = 0.2 # lane line iou loss gain
 
 # DATASET related params
 _C.DATASET = CN(new_allowed=True)
-_C.DATASET.DATAROOT = '/mnt/disk1/BDD100K/images'            # the path of images folder
-# _C.DATASET.LABELROOT = '/mnt/disk1/BDD100K/labels'      # the path of det_annotations folder
-# _C.DATASET.MASKROOT =  '/mnt/disk1/BDD100K/bdd_seg_gt'        # the path of da_seg_annotations folder
-# _C.DATASET.LANEROOT =  '/mnt/disk1/BDD100K/bdd_lane_gt'       # the path of ll_seg_annotations folder
-_C.DATASET.LABELROOT = '/mnt/disk1/BDD100K/contest_datasets/det_annot'      # the path of det_annotations folder
-_C.DATASET.MASKROOT =  '/mnt/disk1/BDD100K/contest_datasets/seg'        # the path of da_seg_annotations folder
-_C.DATASET.LANEROOT =  '/mnt/disk1/BDD100K/contest_datasets/seg'       # the path of ll_seg_annotations folder
-# _C.DATASET.LABELROOT = '/mnt/disk1/BDD100K/temp_test/det_annot'      # the path of det_annotations folder
-# _C.DATASET.MASKROOT =  '/mnt/disk1/BDD100K/temp_test/seg'        # the path of da_seg_annotations folder
-# _C.DATASET.LANEROOT =  '/mnt/disk1/BDD100K/temp_test/seg'       # the path of ll_seg_annotations folder
+_C.DATASET.DATAROOT = '/dev/shm/Datasets/bdd100k/images/100k'                                # the path of images folder
+_C.DATASET.LABELROOT = '/dev/shm/Datasets/bdd100k_contest_format/det_annot' # the path of det_annotations folder
+_C.DATASET.MASKROOT = '/dev/shm/Datasets/bdd100k_contest_format/seg'        # the path of da_seg_annotations folder
+_C.DATASET.LANEROOT = '/dev/shm/Datasets/bdd100k_contest_format/seg'        # the path of ll_seg_annotations folder
 _C.DATASET.DATASET = 'BddDataset'
 _C.DATASET.TRAIN_SET = 'train_val'
 _C.DATASET.TEST_SET = 'train_val'

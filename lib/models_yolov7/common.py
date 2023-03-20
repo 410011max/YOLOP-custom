@@ -12,10 +12,10 @@ from torchvision.ops import DeformConv2d
 from PIL import Image
 from torch.cuda import amp
 
-from utils.datasets import letterbox
-from utils.general import non_max_suppression, make_divisible, scale_coords, increment_path, xyxy2xywh
-from utils.plots import color_list, plot_one_box
-from utils.torch_utils import time_synchronized
+#from .utils.datasets import letterbox
+#from .utils.general import non_max_suppression, make_divisible, scale_coords, increment_path, xyxy2xywh
+#from .utils.plots import color_list, plot_one_box
+from .utils.torch_utils import time_synchronized
 
 
 ##### basic ####
@@ -867,87 +867,87 @@ class Expand(nn.Module):
         return x.view(N, C // s ** 2, H * s, W * s)  # x(1,16,160,160)
 
 
-class NMS(nn.Module):
-    # Non-Maximum Suppression (NMS) module
-    conf = 0.25  # confidence threshold
-    iou = 0.45  # IoU threshold
-    classes = None  # (optional list) filter by class
+# class NMS(nn.Module):
+#     # Non-Maximum Suppression (NMS) module
+#     conf = 0.25  # confidence threshold
+#     iou = 0.45  # IoU threshold
+#     classes = None  # (optional list) filter by class
 
-    def __init__(self):
-        super(NMS, self).__init__()
+#     def __init__(self):
+#         super(NMS, self).__init__()
 
-    def forward(self, x):
-        return non_max_suppression(x[0], conf_thres=self.conf, iou_thres=self.iou, classes=self.classes)
+#     def forward(self, x):
+#         return non_max_suppression(x[0], conf_thres=self.conf, iou_thres=self.iou, classes=self.classes)
 
 
-class autoShape(nn.Module):
-    # input-robust model wrapper for passing cv2/np/PIL/torch inputs. Includes preprocessing, inference and NMS
-    conf = 0.25  # NMS confidence threshold
-    iou = 0.45  # NMS IoU threshold
-    classes = None  # (optional list) filter by class
+# class autoShape(nn.Module):
+#     # input-robust model wrapper for passing cv2/np/PIL/torch inputs. Includes preprocessing, inference and NMS
+#     conf = 0.25  # NMS confidence threshold
+#     iou = 0.45  # NMS IoU threshold
+#     classes = None  # (optional list) filter by class
 
-    def __init__(self, model):
-        super(autoShape, self).__init__()
-        self.model = model.eval()
+#     def __init__(self, model):
+#         super(autoShape, self).__init__()
+#         self.model = model.eval()
 
-    def autoshape(self):
-        print('autoShape already enabled, skipping... ')  # model already converted to model.autoshape()
-        return self
+#     def autoshape(self):
+#         print('autoShape already enabled, skipping... ')  # model already converted to model.autoshape()
+#         return self
 
-    @torch.no_grad()
-    def forward(self, imgs, size=640, augment=False, profile=False):
-        # Inference from various sources. For height=640, width=1280, RGB images example inputs are:
-        #   filename:   imgs = 'data/samples/zidane.jpg'
-        #   URI:             = 'https://github.com/ultralytics/yolov5/releases/download/v1.0/zidane.jpg'
-        #   OpenCV:          = cv2.imread('image.jpg')[:,:,::-1]  # HWC BGR to RGB x(640,1280,3)
-        #   PIL:             = Image.open('image.jpg')  # HWC x(640,1280,3)
-        #   numpy:           = np.zeros((640,1280,3))  # HWC
-        #   torch:           = torch.zeros(16,3,320,640)  # BCHW (scaled to size=640, 0-1 values)
-        #   multiple:        = [Image.open('image1.jpg'), Image.open('image2.jpg'), ...]  # list of images
+#     @torch.no_grad()
+#     def forward(self, imgs, size=640, augment=False, profile=False):
+#         # Inference from various sources. For height=640, width=1280, RGB images example inputs are:
+#         #   filename:   imgs = 'data/samples/zidane.jpg'
+#         #   URI:             = 'https://github.com/ultralytics/yolov5/releases/download/v1.0/zidane.jpg'
+#         #   OpenCV:          = cv2.imread('image.jpg')[:,:,::-1]  # HWC BGR to RGB x(640,1280,3)
+#         #   PIL:             = Image.open('image.jpg')  # HWC x(640,1280,3)
+#         #   numpy:           = np.zeros((640,1280,3))  # HWC
+#         #   torch:           = torch.zeros(16,3,320,640)  # BCHW (scaled to size=640, 0-1 values)
+#         #   multiple:        = [Image.open('image1.jpg'), Image.open('image2.jpg'), ...]  # list of images
 
-        t = [time_synchronized()]
-        p = next(self.model.parameters())  # for device and type
-        if isinstance(imgs, torch.Tensor):  # torch
-            with amp.autocast(enabled=p.device.type != 'cpu'):
-                return self.model(imgs.to(p.device).type_as(p), augment, profile)  # inference
+#         t = [time_synchronized()]
+#         p = next(self.model.parameters())  # for device and type
+#         if isinstance(imgs, torch.Tensor):  # torch
+#             with amp.autocast(enabled=p.device.type != 'cpu'):
+#                 return self.model(imgs.to(p.device).type_as(p), augment, profile)  # inference
 
-        # Pre-process
-        n, imgs = (len(imgs), imgs) if isinstance(imgs, list) else (1, [imgs])  # number of images, list of images
-        shape0, shape1, files = [], [], []  # image and inference shapes, filenames
-        for i, im in enumerate(imgs):
-            f = f'image{i}'  # filename
-            if isinstance(im, str):  # filename or uri
-                im, f = np.asarray(Image.open(requests.get(im, stream=True).raw if im.startswith('http') else im)), im
-            elif isinstance(im, Image.Image):  # PIL Image
-                im, f = np.asarray(im), getattr(im, 'filename', f) or f
-            files.append(Path(f).with_suffix('.jpg').name)
-            if im.shape[0] < 5:  # image in CHW
-                im = im.transpose((1, 2, 0))  # reverse dataloader .transpose(2, 0, 1)
-            im = im[:, :, :3] if im.ndim == 3 else np.tile(im[:, :, None], 3)  # enforce 3ch input
-            s = im.shape[:2]  # HWC
-            shape0.append(s)  # image shape
-            g = (size / max(s))  # gain
-            shape1.append([y * g for y in s])
-            imgs[i] = im  # update
-        shape1 = [make_divisible(x, int(self.stride.max())) for x in np.stack(shape1, 0).max(0)]  # inference shape
-        x = [letterbox(im, new_shape=shape1, auto=False)[0] for im in imgs]  # pad
-        x = np.stack(x, 0) if n > 1 else x[0][None]  # stack
-        x = np.ascontiguousarray(x.transpose((0, 3, 1, 2)))  # BHWC to BCHW
-        x = torch.from_numpy(x).to(p.device).type_as(p) / 255.  # uint8 to fp16/32
-        t.append(time_synchronized())
+#         # Pre-process
+#         n, imgs = (len(imgs), imgs) if isinstance(imgs, list) else (1, [imgs])  # number of images, list of images
+#         shape0, shape1, files = [], [], []  # image and inference shapes, filenames
+#         for i, im in enumerate(imgs):
+#             f = f'image{i}'  # filename
+#             if isinstance(im, str):  # filename or uri
+#                 im, f = np.asarray(Image.open(requests.get(im, stream=True).raw if im.startswith('http') else im)), im
+#             elif isinstance(im, Image.Image):  # PIL Image
+#                 im, f = np.asarray(im), getattr(im, 'filename', f) or f
+#             files.append(Path(f).with_suffix('.jpg').name)
+#             if im.shape[0] < 5:  # image in CHW
+#                 im = im.transpose((1, 2, 0))  # reverse dataloader .transpose(2, 0, 1)
+#             im = im[:, :, :3] if im.ndim == 3 else np.tile(im[:, :, None], 3)  # enforce 3ch input
+#             s = im.shape[:2]  # HWC
+#             shape0.append(s)  # image shape
+#             g = (size / max(s))  # gain
+#             shape1.append([y * g for y in s])
+#             imgs[i] = im  # update
+#         shape1 = [make_divisible(x, int(self.stride.max())) for x in np.stack(shape1, 0).max(0)]  # inference shape
+#         x = [letterbox(im, new_shape=shape1, auto=False)[0] for im in imgs]  # pad
+#         x = np.stack(x, 0) if n > 1 else x[0][None]  # stack
+#         x = np.ascontiguousarray(x.transpose((0, 3, 1, 2)))  # BHWC to BCHW
+#         x = torch.from_numpy(x).to(p.device).type_as(p) / 255.  # uint8 to fp16/32
+#         t.append(time_synchronized())
 
-        with amp.autocast(enabled=p.device.type != 'cpu'):
-            # Inference
-            y = self.model(x, augment, profile)[0]  # forward
-            t.append(time_synchronized())
+#         with amp.autocast(enabled=p.device.type != 'cpu'):
+#             # Inference
+#             y = self.model(x, augment, profile)[0]  # forward
+#             t.append(time_synchronized())
 
-            # Post-process
-            y = non_max_suppression(y, conf_thres=self.conf, iou_thres=self.iou, classes=self.classes)  # NMS
-            for i in range(n):
-                scale_coords(shape1, y[i][:, :4], shape0[i])
+#             # Post-process
+#             y = non_max_suppression(y, conf_thres=self.conf, iou_thres=self.iou, classes=self.classes)  # NMS
+#             for i in range(n):
+#                 scale_coords(shape1, y[i][:, :4], shape0[i])
 
-            t.append(time_synchronized())
-            return Detections(imgs, y, files, t, self.names, x.shape)
+#             t.append(time_synchronized())
+#             return Detections(imgs, y, files, t, self.names, x.shape)
 
 
 class Detections:

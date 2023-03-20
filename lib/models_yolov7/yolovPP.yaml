@@ -1,7 +1,11 @@
 # parameters
-nc: 80  # number of classes
+nc: 4  # number of classes
 depth_multiple: 1.0  # model depth multiple
 width_multiple: 1.0  # layer channel multiple
+
+
+
+
 
 # anchors
 anchors:
@@ -74,10 +78,10 @@ backbone:
 head:
   [[-1, 1, SPPCSPC, [512]], # 51
   
-   [-1, 1, Conv, [256, 1, 1]],
-   [-1, 1, nn.Upsample, [None, 2, 'nearest']],
-   [37, 1, Conv, [256, 1, 1]], # route backbone P4
-   [[-1, -2], 1, Concat, [1]],
+   [-1, 1, Conv, [256, 1, 1]], #52
+   [-1, 1, nn.Upsample, [None, 2, 'nearest']],  # 53
+   [37, 1, Conv, [256, 1, 1]], # route backbone P4 #54
+   [[-1, -2], 1, Concat, [1]], #55
    
    [-1, 1, Conv, [256, 1, 1]],
    [-2, 1, Conv, [256, 1, 1]],
@@ -144,27 +148,37 @@ head:
 # customize segmentation head (driving area)
 head_drive_area :  
   [
-    [ 101, 1, Conv, [256, 3, 1]],   #25
-    [ -1, 1, nn.Upsample, [None, 2, 'nearest']],  #26
-    [ -1, 1, BottleneckCSPD, [128, 1, False]],  #27
-    [ -1, 1, Conv, [64, 3, 1]],    #28
-    [ -1, 1, nn.Upsample, [None, 2, 'nearest']],  #29
-    [ -1, 1, Conv, [32, 3, 1]],    #30
-    [ -1, 1, BottleneckCSPD, [16, 1, False]],    #31
-    [ -1, 1, nn.Upsample, [None, 2, 'nearest']],  #32
-    [ -1, 1, Conv, [3, 3, 1, None, 1, False]], #33 Driving area segmentation head
+    [ 55, 1, Conv, [256, 3, 1]],  
+    [ -1, 1, nn.Upsample, [None, 2, 'nearest']], 
+    [ -1, 1, BottleneckCSPD, [128, 1, False]], 
+    [ -1, 1, Conv, [64, 3, 1]],    
+    [ -1, 1, nn.Upsample, [None, 2, 'nearest']],  
+    [ -1, 1, Conv, [32, 3, 1]],    
+    [ -1, 1, BottleneckCSPD, [16, 1, False]],    
+    [ -1, 1, nn.Upsample, [None, 2, 'nearest']],  
+    [ -1, 1, Conv, [8, 3, 1]],   
+    [ -1, 1, nn.Upsample, [None, 2, 'nearest']],  
+    [ -1, 1, Conv, [3, 3, 1, None, 1, False]], #116
   ]
 
 # customize segmentation head (lane line)head_drive_area :  
 head_line:
   [
-    [ 101, 1, Conv, [256, 3, 1]],   #25
-    [ -1, 1, nn.Upsample, [None, 2, 'nearest']],  #26
-    [ -1, 1, BottleneckCSPD, [128, 1, False]],  #27
-    [ -1, 1, Conv, [64, 3, 1]],    #28
-    [ -1, 1, nn.Upsample, [None, 2, 'nearest']],  #29
-    [ -1, 1, Conv, [32, 3, 1]],    #30
-    [ -1, 1, BottleneckCSPD, [16, 1, False]],    #31
-    [ -1, 1, nn.Upsample, [None, 2, 'nearest']],  #32
-    [ -1, 1, Conv, [4, 3, 1, None, 1, False]], #33 Driving area segmentation head
+    [ 55, 1, Conv, [256, 3, 1]],   
+    [ -1, 1, nn.Upsample, [None, 2, 'nearest']],  
+    [ -1, 1, BottleneckCSPD, [128, 1, False]],  
+    [ -1, 1, Conv, [64, 3, 1]],    
+    [ -1, 1, nn.Upsample, [None, 2, 'nearest']],  
+    [ -1, 1, Conv, [32, 3, 1]],    
+    [ -1, 1, BottleneckCSPD, [16, 1, False]],    
+    [ -1, 1, nn.Upsample, [None, 2, 'nearest']],  
+    [ -1, 1, Conv, [8, 3, 1]],   
+    [ -1, 1, nn.Upsample, [None, 2, 'nearest']],  
+    [ -1, 1, Conv, [4, 3, 1, None, 1, False]], #127  Lane line segmentation head
   ]
+
+
+
+det_out_idx:   105
+DaSeg_out_idx: 116
+LLSeg_out_idx: 127
