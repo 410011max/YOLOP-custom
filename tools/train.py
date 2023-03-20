@@ -114,7 +114,7 @@ def main():
     # start_time = time.time()
     print("begin to bulid up model...")
     # DP mode
-    device = select_device(logger, batch_size=cfg.TRAIN.BATCH_SIZE_PER_GPU* len(cfg.GPUS)) if not cfg.DEBUG \
+    device = select_device(logger, batch_size=cfg.TRAIN.BATCH_SIZE_PER_GPU) if not cfg.DEBUG \
         else select_device(logger, 'cpu')
 
     if args.local_rank != -1:
@@ -122,7 +122,7 @@ def main():
         torch.cuda.set_device(args.local_rank)
         device = torch.device('cuda', args.local_rank)
         dist.init_process_group(backend='nccl', init_method='env://')  # distributed backend
-    
+
     print("load model to device")
 
     if args.yolov7:
@@ -135,7 +135,7 @@ def main():
     # print("load finished")
     #model = model.to(device)
     # print("finish build model")
-    
+
 
     # define loss function (criterion) and optimizer
     criterion = get_loss(cfg, device=device)
@@ -163,11 +163,11 @@ def main():
         )
         if os.path.exists(cfg.MODEL.PRETRAINED):
             logger.info("=> loading model '{}'".format(cfg.MODEL.PRETRAINED))
-            checkpoint = torch.load(cfg.MODEL.PRETRAINED)
+            checkpoint = torch.load(cfg.MODEL.PRETRAINED, map_location='cpu')
             # begin_epoch = checkpoint['epoch']
             # best_perf = checkpoint['perf']
             # last_epoch = checkpoint['epoch']
-            
+
             # remove the segmentation head (da, ll)
             state_dict = checkpoint['state_dict']
             detect_layer = [k for k in state_dict.keys() if '24' in k]
@@ -177,7 +177,7 @@ def main():
             seg_layer = [k for k in state_dict.keys() if ('33' in k) or ('42' in k)]
             for k in seg_layer:
                 del state_dict[k]
-                
+
             model.load_state_dict(state_dict, strict=False)
             # optimizer.load_state_dict(checkpoint['optimizer'])
             logger.info("=> loaded checkpoint '{}' (epoch {})".format(
@@ -191,12 +191,12 @@ def main():
             det_idx_range = [str(i) for i in range(0,105)]
             model_dict = model.state_dict()
             checkpoint_file_det = cfg.MODEL.PRETRAINED_DET
-            checkpoint_det = torch.load(checkpoint_file_det)
+            checkpoint_det = torch.load(checkpoint_file_det, map_location='cpu')
             checkpoint_dict = {k: v for k, v in checkpoint_det.items() if k.split(".")[1] in det_idx_range}
             model_dict.update(checkpoint_dict)
             model.load_state_dict(model_dict)
             logger.info("=> loaded det branch checkpoint '{}' ".format(checkpoint_file_det))
-            
+
         elif(cfg.MODEL.PRETRAINED_DET):
             logger.info("=> can't find '{}' ".format(cfg.MODEL.PRETRAINED))
 
@@ -234,7 +234,7 @@ def main():
         if cfg.TRAIN.ENC_SEG_ONLY:  # Only train encoder and two segmentation branchs
             logger.info('freeze Det head...')
             for k, v in model.named_parameters():
-                v.requires_grad = True  # train all layers 
+                v.requires_grad = True  # train all layers
                 if k.split(".")[1] in Det_Head_para_idx:
                     print('freezing %s' % k)
                     v.requires_grad = False
@@ -248,7 +248,7 @@ def main():
                     v.requires_grad = False
 
 
-        if cfg.TRAIN.LANE_ONLY: 
+        if cfg.TRAIN.LANE_ONLY:
             logger.info('freeze encoder and Det head and Da_Seg heads...')
             # print(model.named_parameters)
             for k, v in model.named_parameters():
@@ -265,7 +265,7 @@ def main():
                 if k.split(".")[1] in Encoder_para_idx + Ll_Seg_Head_para_idx + Det_Head_para_idx:
                     print('freezing %s' % k)
                     v.requires_grad = False
-        
+
     if rank == -1 and torch.cuda.device_count() > 1:
         model = torch.nn.DataParallel(model, device_ids=cfg.GPUS)
         # model = torch.nn.DataParallel(model, device_ids=cfg.GPUS).cuda()
@@ -298,7 +298,7 @@ def main():
 
     train_loader = DataLoaderX(
         train_dataset,
-        batch_size=cfg.TRAIN.BATCH_SIZE_PER_GPU * len(cfg.GPUS),
+        batch_size=cfg.TRAIN.BATCH_SIZE_PER_GPU,
         shuffle=(cfg.TRAIN.SHUFFLE & rank == -1),
         num_workers=cfg.WORKERS,
         sampler=train_sampler,
@@ -320,14 +320,14 @@ def main():
 
         valid_loader = DataLoaderX(
             valid_dataset,
-            batch_size=cfg.TEST.BATCH_SIZE_PER_GPU * len(cfg.GPUS),
+            batch_size=cfg.TEST.BATCH_SIZE_PER_GPU,
             shuffle=False,
             num_workers=cfg.WORKERS,
             pin_memory=cfg.PIN_MEMORY,
             collate_fn=dataset.AutoDriveDataset.collate_fn
         )
         print('load data finished')
-    
+
     if rank in [-1, 0]:
         if cfg.NEED_AUTOANCHOR:
             logger.info("begin check anchors")
@@ -345,11 +345,11 @@ def main():
     for epoch in range(begin_epoch+1, cfg.TRAIN.END_EPOCH+1):
         if rank != -1:
             train_loader.sampler.set_epoch(epoch)
-        # # train for one epoch
-        # train(cfg, train_loader, model, criterion, optimizer, scaler,
-        #        epoch, num_batch, num_warmup, writer_dict, logger, device, rank)
-        
-        # lr_scheduler.step()
+        # train for one epoch
+        train(cfg, train_loader, model, criterion, optimizer, scaler,
+                epoch, num_batch, num_warmup, writer_dict, logger, device, rank)
+
+        lr_scheduler.step()
 
         # evaluate on validation set
         if (epoch % cfg.TRAIN.VAL_FREQ == 0 or epoch == cfg.TRAIN.END_EPOCH) and rank in [-1, 0]:

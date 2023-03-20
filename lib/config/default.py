@@ -5,11 +5,11 @@ from yacs.config import CfgNode as CN
 _C = CN()
 
 _C.LOG_DIR = 'runs/'
-_C.GPUS = [0]     
+_C.GPUS = [0]
 _C.WORKERS = 10
 _C.PIN_MEMORY = True
 _C.PRINT_FREQ = 20
-_C.AUTO_RESUME = True     # Resume from the last training interrupt
+_C.AUTO_RESUME = True   # Resume from the last training interrupt
 _C.NEED_AUTOANCHOR = False      # Re-select the prior anchor(k-means)    When training from scratch (epoch=0), set it to be ture!
 _C.DEBUG = False
 _C.num_seg_class = 3
@@ -95,7 +95,7 @@ _C.TRAIN.GAMMA2 = 0.0
 _C.TRAIN.BEGIN_EPOCH = 0
 _C.TRAIN.END_EPOCH = 240
 
-_C.TRAIN.VAL_FREQ = 1
+_C.TRAIN.VAL_FREQ = 10
 _C.TRAIN.BATCH_SIZE_PER_GPU = 48
 _C.TRAIN.SHUFFLE = True
 
@@ -109,7 +109,7 @@ _C.TRAIN.DET_ONLY = False           # Only train detection branch
 _C.TRAIN.ENC_SEG_ONLY = False       # Only train encoder and two segmentation branchs
 _C.TRAIN.ENC_DET_ONLY = False       # Only train encoder and detection branch
 
-# Single task 
+# Single task
 _C.TRAIN.DRIVABLE_ONLY = False      # Only train da_segmentation task
 _C.TRAIN.LANE_ONLY = False          # Only train ll_segmentation task
 _C.TRAIN.DET_ONLY = False          # Only train detection task
@@ -117,7 +117,7 @@ _C.TRAIN.DET_ONLY = False          # Only train detection task
 
 
 
-_C.TRAIN.PLOT = True                # 
+_C.TRAIN.PLOT = False                #
 
 # testing
 _C.TEST = CN(new_allowed=True)
@@ -126,7 +126,7 @@ _C.TEST.MODEL_FILE = ''
 _C.TEST.SAVE_JSON = False
 _C.TEST.SAVE_TXT = False
 _C.TEST.PLOTS = True
-_C.TEST.NMS_CONF_THRESHOLD  = 0.001
+_C.TEST.NMS_CONF_THRESHOLD  = 0.25
 _C.TEST.NMS_IOU_THRESHOLD  = 0.6
 
 
@@ -139,7 +139,7 @@ def update_config(cfg, args):
 
     if args.logDir:
         cfg.LOG_DIR = args.logDir
-    
+
     if args.weights:
         cfg.MODEL.PRETRAINED = args.weights
 
@@ -148,7 +148,7 @@ def update_config(cfg, args):
 
     # if args.iou_thres:
     #     cfg.TEST.NMS_IOU_THRESHOLD = args.iou_thres
-    
+
 
 
     # cfg.MODEL.PRETRAINED = os.path.join(
