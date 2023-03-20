@@ -5,11 +5,11 @@ from yacs.config import CfgNode as CN
 _C = CN()
 
 _C.LOG_DIR = 'runs/'
-_C.GPUS = [0]     
-_C.WORKERS = 8
+_C.GPUS = [0]
+_C.WORKERS = 10
 _C.PIN_MEMORY = True
-_C.PRINT_FREQ = 100
-_C.AUTO_RESUME = False       # Resume from the last training interrupt
+_C.PRINT_FREQ = 20
+_C.AUTO_RESUME = True   # Resume from the last training interrupt
 _C.NEED_AUTOANCHOR = False      # Re-select the prior anchor(k-means)    When training from scratch (epoch=0), set it to be ture!
 _C.DEBUG = False
 _C.num_seg_class = 3
@@ -29,7 +29,8 @@ _C.MODEL.NAME = ''
 _C.MODEL.STRU_WITHSHARE = False     #add share_block to segbranch
 _C.MODEL.HEADS_NAME = ['']
 _C.MODEL.PRETRAINED = ""
-_C.MODEL.PRETRAINED_DET = ""
+#_C.MODEL.PRETRAINED_DET = "./weights/yolov7_pretrained.pth" # [brian1009] : Add yolov7 pretrained
+_C.MODEL.PRETRAINED_DET = "" # [brian1009] : Add yolov7 pretrained
 _C.MODEL.IMAGE_SIZE = [640, 640]  # width * height, ex: 192 * 256
 _C.MODEL.EXTRA = CN(new_allowed=True)
 
@@ -52,16 +53,10 @@ _C.LOSS.LL_IOU_GAIN = 0.2 # lane line iou loss gain
 
 # DATASET related params
 _C.DATASET = CN(new_allowed=True)
-_C.DATASET.DATAROOT = '/mnt/disk1/BDD100K/images'            # the path of images folder
-# _C.DATASET.LABELROOT = '/mnt/disk1/BDD100K/labels'      # the path of det_annotations folder
-# _C.DATASET.MASKROOT =  '/mnt/disk1/BDD100K/bdd_seg_gt'        # the path of da_seg_annotations folder
-# _C.DATASET.LANEROOT =  '/mnt/disk1/BDD100K/bdd_lane_gt'       # the path of ll_seg_annotations folder
-_C.DATASET.LABELROOT = '/mnt/disk1/BDD100K/contest_datasets/det_annot'      # the path of det_annotations folder
-_C.DATASET.MASKROOT =  '/mnt/disk1/BDD100K/contest_datasets/seg'        # the path of da_seg_annotations folder
-_C.DATASET.LANEROOT =  '/mnt/disk1/BDD100K/contest_datasets/seg'       # the path of ll_seg_annotations folder
-# _C.DATASET.LABELROOT = '/mnt/disk1/BDD100K/temp_test/det_annot'      # the path of det_annotations folder
-# _C.DATASET.MASKROOT =  '/mnt/disk1/BDD100K/temp_test/seg'        # the path of da_seg_annotations folder
-# _C.DATASET.LANEROOT =  '/mnt/disk1/BDD100K/temp_test/seg'       # the path of ll_seg_annotations folder
+_C.DATASET.DATAROOT = '/dev/shm/Datasets/bdd100k/images/100k'                                # the path of images folder
+_C.DATASET.LABELROOT = '/dev/shm/Datasets/bdd100k_contest_format/det_annot' # the path of det_annotations folder
+_C.DATASET.MASKROOT = '/dev/shm/Datasets/bdd100k_contest_format/seg'        # the path of da_seg_annotations folder
+_C.DATASET.LANEROOT = '/dev/shm/Datasets/bdd100k_contest_format/seg'        # the path of ll_seg_annotations folder
 _C.DATASET.DATASET = 'BddDataset'
 _C.DATASET.TRAIN_SET = 'train_val'
 _C.DATASET.TEST_SET = 'train_val'
@@ -101,7 +96,7 @@ _C.TRAIN.BEGIN_EPOCH = 0
 _C.TRAIN.END_EPOCH = 240
 
 _C.TRAIN.VAL_FREQ = 10
-_C.TRAIN.BATCH_SIZE_PER_GPU = 32
+_C.TRAIN.BATCH_SIZE_PER_GPU = 48
 _C.TRAIN.SHUFFLE = True
 
 _C.TRAIN.IOU_THRESHOLD = 0.2
@@ -114,7 +109,7 @@ _C.TRAIN.DET_ONLY = False           # Only train detection branch
 _C.TRAIN.ENC_SEG_ONLY = False       # Only train encoder and two segmentation branchs
 _C.TRAIN.ENC_DET_ONLY = False       # Only train encoder and detection branch
 
-# Single task 
+# Single task
 _C.TRAIN.DRIVABLE_ONLY = False      # Only train da_segmentation task
 _C.TRAIN.LANE_ONLY = False          # Only train ll_segmentation task
 _C.TRAIN.DET_ONLY = False          # Only train detection task
@@ -122,7 +117,7 @@ _C.TRAIN.DET_ONLY = False          # Only train detection task
 
 
 
-_C.TRAIN.PLOT = True                # 
+_C.TRAIN.PLOT = False                #
 
 # testing
 _C.TEST = CN(new_allowed=True)
@@ -131,7 +126,7 @@ _C.TEST.MODEL_FILE = ''
 _C.TEST.SAVE_JSON = False
 _C.TEST.SAVE_TXT = False
 _C.TEST.PLOTS = True
-_C.TEST.NMS_CONF_THRESHOLD  = 0.001
+_C.TEST.NMS_CONF_THRESHOLD  = 0.25
 _C.TEST.NMS_IOU_THRESHOLD  = 0.6
 
 
@@ -144,7 +139,7 @@ def update_config(cfg, args):
 
     if args.logDir:
         cfg.LOG_DIR = args.logDir
-    
+
     if args.weights:
         cfg.MODEL.PRETRAINED = args.weights
 
@@ -153,7 +148,7 @@ def update_config(cfg, args):
 
     # if args.iou_thres:
     #     cfg.TEST.NMS_IOU_THRESHOLD = args.iou_thres
-    
+
 
 
     # cfg.MODEL.PRETRAINED = os.path.join(
