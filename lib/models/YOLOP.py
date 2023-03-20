@@ -163,7 +163,10 @@ if __name__ == "__main__":
     print('\nDetects:')
     for det in detects:
         print(det.shape)
+        print(det.dtype)
     print('\nSegmentation:')
+    print(dring_area_seg.dtype)
     print(dring_area_seg.shape)
+    print(lane_line_seg.dtype)
     print(lane_line_seg.shape)
  
