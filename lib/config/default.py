@@ -6,10 +6,17 @@ _C = CN()
 
 _C.LOG_DIR = 'runs/'
 _C.GPUS = [0]     
+<<<<<<< HEAD
 _C.WORKERS = 8
 _C.PIN_MEMORY = True
 _C.PRINT_FREQ = 100
 _C.AUTO_RESUME = False       # Resume from the last training interrupt
+=======
+_C.WORKERS = 10
+_C.PIN_MEMORY = True
+_C.PRINT_FREQ = 20
+_C.AUTO_RESUME = True     # Resume from the last training interrupt
+>>>>>>> 9a82d5e... [YOLO-v7] Update related code, fix bug of error index of detection head
 _C.NEED_AUTOANCHOR = False      # Re-select the prior anchor(k-means)    When training from scratch (epoch=0), set it to be ture!
 _C.DEBUG = False
 _C.num_seg_class = 3
@@ -29,7 +36,8 @@ _C.MODEL.NAME = ''
 _C.MODEL.STRU_WITHSHARE = False     #add share_block to segbranch
 _C.MODEL.HEADS_NAME = ['']
 _C.MODEL.PRETRAINED = ""
-_C.MODEL.PRETRAINED_DET = "./weights/yolov7_pretrained.pth" # [brian1009] : Add yolov7 pretrained
+#_C.MODEL.PRETRAINED_DET = "./weights/yolov7_pretrained.pth" # [brian1009] : Add yolov7 pretrained
+_C.MODEL.PRETRAINED_DET = "" # [brian1009] : Add yolov7 pretrained
 _C.MODEL.IMAGE_SIZE = [640, 640]  # width * height, ex: 192 * 256
 _C.MODEL.EXTRA = CN(new_allowed=True)
 
@@ -94,8 +102,8 @@ _C.TRAIN.GAMMA2 = 0.0
 _C.TRAIN.BEGIN_EPOCH = 0
 _C.TRAIN.END_EPOCH = 240
 
-_C.TRAIN.VAL_FREQ = 10
-_C.TRAIN.BATCH_SIZE_PER_GPU = 32
+_C.TRAIN.VAL_FREQ = 1
+_C.TRAIN.BATCH_SIZE_PER_GPU = 48
 _C.TRAIN.SHUFFLE = True
 
 _C.TRAIN.IOU_THRESHOLD = 0.2

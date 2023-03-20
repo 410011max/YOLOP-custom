@@ -147,10 +147,10 @@ def main():
     best_model = False
     last_epoch = -1
 
-    Encoder_para_idx = [str(i) for i in range(0, 17)]
-    Det_Head_para_idx = [str(i) for i in range(17, 25)]
-    Da_Seg_Head_para_idx = [str(i) for i in range(25, 34)]
-    Ll_Seg_Head_para_idx = [str(i) for i in range(34,43)]
+    Encoder_para_idx = [str(i) for i in range(0, 51)]
+    Det_Head_para_idx = [str(i) for i in range(51, 106)]
+    Da_Seg_Head_para_idx = [str(i) for i in range(106, 117)]
+    Ll_Seg_Head_para_idx = [str(i) for i in range(117,128)]
 
     lf = lambda x: ((1 + math.cos(x * math.pi / cfg.TRAIN.END_EPOCH)) / 2) * \
                    (1 - cfg.TRAIN.LRF) + cfg.TRAIN.LRF  # cosine
@@ -190,12 +190,12 @@ def main():
             logger.info("=> loading model weight in det branch from '{}'".format(cfg.MODEL.PRETRAINED_DET))
             det_idx_range = [str(i) for i in range(0,105)]
             model_dict = model.state_dict()
-            checkpoint_file = cfg.MODEL.PRETRAINED_DET
-            checkpoint = torch.load(checkpoint_file)
-            checkpoint_dict = {k: v for k, v in checkpoint.items() if k.split(".")[1] in det_idx_range}
+            checkpoint_file_det = cfg.MODEL.PRETRAINED_DET
+            checkpoint_det = torch.load(checkpoint_file_det)
+            checkpoint_dict = {k: v for k, v in checkpoint_det.items() if k.split(".")[1] in det_idx_range}
             model_dict.update(checkpoint_dict)
             model.load_state_dict(model_dict)
-            logger.info("=> loaded det branch checkpoint '{}' ".format(checkpoint_file))
+            logger.info("=> loaded det branch checkpoint '{}' ".format(checkpoint_file_det))
             
         elif(cfg.MODEL.PRETRAINED_DET):
             logger.info("=> can't find '{}' ".format(cfg.MODEL.PRETRAINED))
@@ -345,11 +345,11 @@ def main():
     for epoch in range(begin_epoch+1, cfg.TRAIN.END_EPOCH+1):
         if rank != -1:
             train_loader.sampler.set_epoch(epoch)
-        # train for one epoch
-        train(cfg, train_loader, model, criterion, optimizer, scaler,
-              epoch, num_batch, num_warmup, writer_dict, logger, device, rank)
+        # # train for one epoch
+        # train(cfg, train_loader, model, criterion, optimizer, scaler,
+        #        epoch, num_batch, num_warmup, writer_dict, logger, device, rank)
         
-        lr_scheduler.step()
+        # lr_scheduler.step()
 
         # evaluate on validation set
         if (epoch % cfg.TRAIN.VAL_FREQ == 0 or epoch == cfg.TRAIN.END_EPOCH) and rank in [-1, 0]:
