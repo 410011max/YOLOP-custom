@@ -30,6 +30,9 @@
     ```
 
 
++ **checkpoint 跟 yolo-v7 pretrained weight 放在這邊**
+    + [link](https://drive.google.com/drive/folders/1d2AODkoePiYMJWi3WdohDhN_givDno5U?usp=share_link)
+
 
 ---
 ## You Only :eyes: Once for Panoptic ​ :car: Perception
