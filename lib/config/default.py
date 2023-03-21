@@ -6,10 +6,10 @@ _C = CN()
 
 _C.LOG_DIR = 'runs/'
 _C.GPUS = [0]
-_C.WORKERS = 4
+_C.WORKERS = 16
 _C.PIN_MEMORY = True
 _C.PRINT_FREQ = 20
-_C.AUTO_RESUME = True   # Resume from the last training interrupt
+_C.AUTO_RESUME = False   # Resume from the last training interrupt
 _C.NEED_AUTOANCHOR = False      # Re-select the prior anchor(k-means)    When training from scratch (epoch=0), set it to be ture!
 _C.DEBUG = False
 _C.num_seg_class = 3
@@ -29,8 +29,8 @@ _C.MODEL.NAME = ''
 _C.MODEL.STRU_WITHSHARE = False     #add share_block to segbranch
 _C.MODEL.HEADS_NAME = ['']
 _C.MODEL.PRETRAINED = ""
-#_C.MODEL.PRETRAINED_DET = "./weights/yolov7_pretrained.pth" # [brian1009] : Add yolov7 pretrained
-_C.MODEL.PRETRAINED_DET = "" # [brian1009] : Add yolov7 pretrained
+_C.MODEL.PRETRAINED_DET = "./weights/yolov7_pretrained.pth" # [brian1009] : Add yolov7 pretrained
+#_C.MODEL.PRETRAINED_DET = "" # [brian1009] : Add yolov7 pretrained
 _C.MODEL.IMAGE_SIZE = [640, 640]  # width * height, ex: 192 * 256
 _C.MODEL.EXTRA = CN(new_allowed=True)
 
@@ -79,21 +79,21 @@ _C.DATASET.HSV_V = 0.4  # image HSV-Value augmentation (fraction)
 
 # train
 _C.TRAIN = CN(new_allowed=True)
-_C.TRAIN.LR0 = 0.001  # initial learning rate (SGD=1E-2, Adam=1E-3)
-_C.TRAIN.LRF = 0.2  # final OneCycleLR learning rate (lr0 * lrf)
+_C.TRAIN.LR0 = 0.01  #NOTE:[brian1009] Align YOLOP-V2
+_C.TRAIN.LRF = 0.001  # final OneCycleLR learning rate (lr0 * lrf)
 _C.TRAIN.WARMUP_EPOCHS = 3.0
 _C.TRAIN.WARMUP_BIASE_LR = 0.1
 _C.TRAIN.WARMUP_MOMENTUM = 0.8
 
 _C.TRAIN.OPTIMIZER = 'adam'
 _C.TRAIN.MOMENTUM = 0.937
-_C.TRAIN.WD = 0.0005
+_C.TRAIN.WD = 0.005 #NOTE:[brian1009] Align YOLOP-V2
 _C.TRAIN.NESTEROV = True
 _C.TRAIN.GAMMA1 = 0.99
 _C.TRAIN.GAMMA2 = 0.0
 
 _C.TRAIN.BEGIN_EPOCH = 0
-_C.TRAIN.END_EPOCH = 240
+_C.TRAIN.END_EPOCH = 300
 
 _C.TRAIN.VAL_FREQ = 10
 _C.TRAIN.BATCH_SIZE_PER_GPU = 80
@@ -125,7 +125,7 @@ _C.TEST.BATCH_SIZE_PER_GPU = 32
 _C.TEST.MODEL_FILE = ''
 _C.TEST.SAVE_JSON = False
 _C.TEST.SAVE_TXT = False
-_C.TEST.PLOTS = True
+_C.TEST.PLOTS = False
 _C.TEST.NMS_CONF_THRESHOLD  = 0.25
 _C.TEST.NMS_IOU_THRESHOLD  = 0.6
 
