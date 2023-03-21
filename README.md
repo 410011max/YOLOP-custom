@@ -7,7 +7,7 @@
 現階段`YOLOP-V2(outs)`的架構，目前是使用yaml檔案定義在`lib/models_yolov7/yolovPP.yml`。這邊簡單介紹一下這邊是怎麼定義model 架構的。在設定檔案當中，架構主要會由一個長度為4的list 來定義，分別代表 [from, number, module, args] 各個數值定義如下：
 + from (integer): 前一層的id
 + number : repeated 這個block 幾次
-+ module : 哪一個nn.module ??? (會直接對應到class 的名字，例如你要用`nn.Conv`, 那就會是`nn.Conv`)
++ module : 哪一個nn.module (會直接對應到class 的名字，例如你要用`nn.Conv`, 那就會是`nn.Conv`)
 + args : 對應到該module 的constructor. 這邊要注要，input_channel 通常會被省略掉。詳情可以參考`./lib/models_yolov7/yolo.py#L725`這邊。
 下面是範例！
     ```
