@@ -1,5 +1,13 @@
 <div align="left">   
 
+# Note For ICME Teammates 
+在這個repo當中，主要的程式碼跟function都在`lib`底下。模型的部分，目前我們有原始的`YOLOP`以及`YOLOP-V2(ours)`兩個版本，分別放在`lib/models` 以及 `lib/models_yolov7`底下。
+
+
+
+
+
+---
 ## You Only :eyes: Once for Panoptic ​ :car: Perception
 > [**You Only Look at Once for Panoptic driving Perception**](https://link.springer.com/article/10.1007/s11633-022-1339-y)
 >
