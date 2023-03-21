@@ -6,7 +6,7 @@ _C = CN()
 
 _C.LOG_DIR = 'runs/'
 _C.GPUS = [0]
-_C.WORKERS = 10
+_C.WORKERS = 4
 _C.PIN_MEMORY = True
 _C.PRINT_FREQ = 20
 _C.AUTO_RESUME = True   # Resume from the last training interrupt
@@ -53,13 +53,13 @@ _C.LOSS.LL_IOU_GAIN = 0.2 # lane line iou loss gain
 
 # DATASET related params
 _C.DATASET = CN(new_allowed=True)
-_C.DATASET.DATAROOT = '/dev/shm/Datasets/bdd100k/images/100k'                                # the path of images folder
-_C.DATASET.LABELROOT = '/dev/shm/Datasets/bdd100k_contest_format/det_annot' # the path of det_annotations folder
-_C.DATASET.MASKROOT = '/dev/shm/Datasets/bdd100k_contest_format/seg'        # the path of da_seg_annotations folder
-_C.DATASET.LANEROOT = '/dev/shm/Datasets/bdd100k_contest_format/seg'        # the path of ll_seg_annotations folder
+_C.DATASET.DATAROOT  = '/dev/shm/bdd100k/images'     # the path of images folder
+_C.DATASET.LABELROOT = '/dev/shm/bdd100k/det_annot'  # the path of det_annotations folder
+_C.DATASET.MASKROOT  = '/dev/shm/bdd100k/seg'        # the path of da_seg_annotations folder
+_C.DATASET.LANEROOT  = '/dev/shm/bdd100k/seg'        # the path of ll_seg_annotations folder
 _C.DATASET.DATASET = 'BddDataset'
-_C.DATASET.TRAIN_SET = 'train_val'
-_C.DATASET.TEST_SET = 'train_val'
+_C.DATASET.TRAIN_SET = 'train'
+_C.DATASET.TEST_SET  = 'train'
 _C.DATASET.DATA_FORMAT = 'jpg'
 _C.DATASET.SELECT_DATA = False
 _C.DATASET.ORG_IMG_SIZE = [720, 1280]
@@ -96,7 +96,7 @@ _C.TRAIN.BEGIN_EPOCH = 0
 _C.TRAIN.END_EPOCH = 240
 
 _C.TRAIN.VAL_FREQ = 10
-_C.TRAIN.BATCH_SIZE_PER_GPU = 48
+_C.TRAIN.BATCH_SIZE_PER_GPU = 80
 _C.TRAIN.SHUFFLE = True
 
 _C.TRAIN.IOU_THRESHOLD = 0.2
