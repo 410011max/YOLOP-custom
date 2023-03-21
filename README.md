@@ -1,9 +1,33 @@
 <div align="left">   
 
 # Note For ICME Teammates 
+
 在這個repo當中，主要的程式碼跟function都在`lib`底下。模型的部分，目前我們有原始的`YOLOP`以及`YOLOP-V2(ours)`兩個版本，分別放在`lib/models` 以及 `lib/models_yolov7`底下。
 
+現階段`YOLOP-V2(outs)`的架構，目前是使用yaml檔案定義在`lib/models_yolov7/yolovPP.yml`。這邊簡單介紹一下這邊是怎麼定義model 架構的。在設定檔案當中，架構主要會由一個長度為4的list 來定義，分別代表 [from, number, module, args] 各個數值定義如下：
++ from (integer): 前一層的id
++ number : repeated 這個block 幾次
++ module : 哪一個nn.module ??? (會直接對應到class 的名字，例如你要用`nn.Conv`, 那就會是`nn.Conv`)
++ args : 對應到該module 的constructor. 這邊要注要，input_channel 通常會被省略掉。詳情可以參考`./lib/models_yolov7/yolo.py#L725`這邊。
+下面是範例！
+    ```
+    [
+        [-1, 1, Conv, [32, 3, 1]],  # 0
+        [-1, 1, Conv, [64, 3, 2]]
+    ]
+    ```
 
+下面來講一下，目前已經處理跟改好的檔案。訓練跟產生比賽預測結果的程式碼都放在 `tools`底下。大家可以再去看一下argparse。另外在 `lib/configs/default.py`這邊可以設定資料集的路徑，接下來我們要finetune Ojbect Detection的話，在那個檔案裡面也有對應的開關，理論上把`TRAIN.DET_ONLY` 改掉以後就可以了。但這邊還沒驗證。 
+
+下面提供幾個範例
++ 用單卡訓練yolov7 （ps: 把 nproc_per_node改成你要跑幾張卡):
+    ```
+    python -m torch.distributed.launch --nproc_per_node=1 tools/train.py --logDir yolov7_0320 --yolov7 --yolov7-cfg ./lib/models_yolov7/yolovPP.yaml --val-data-percentage 0.1
+    ```
++ 送Demo, (下面 `{path to testing dataset}` 的部分要改一下)
+    ```
+    python tools/demo.py --weights yolov7_0320/BddDataset/checkpoint.pth --source {path to testing dataset} --yolov7 --yolov7-cfg lib/models_yolov7/yolovPP.yaml  --device 0 --conf-thres 0.3 --save-dir inference/output2 
+    ```
 
 
 
