@@ -65,6 +65,9 @@ def parse_args():
                         help='load pretrained model',
                         type=str,
                         default='')
+    parser.add_argument('--save-freq', type=int, default=1, help='frequency of saving check point. (default=1)')
+    parser.add_argument('--eval', action='store_true', help='Run evaluation process only')
+    parser.add_argument('--val-data-percentage', type=float, default=1.0, help='Percentage of validation dataset')
     parser.add_argument('--yolov7', action='store_true', help='whether to switch to yolo-v7')
     parser.add_argument('--yolov7-cfg', type=str, help = 'path to the configuration file of yolov7')
     parser.add_argument('--sync-bn', action='store_true', help='use SyncBatchNorm, only available in DDP mode')
@@ -131,7 +134,7 @@ def main():
         model = get_net_yolov7(args.yolov7_cfg).to(device)
     else:
         model = get_net(cfg).to(device)
-    print(model)
+    #print(model)
     # print("load finished")
     #model = model.to(device)
     # print("finish build model")
@@ -209,6 +212,7 @@ def main():
             model.load_state_dict(checkpoint['state_dict'])
             # optimizer = get_optimizer(cfg, model)
             optimizer.load_state_dict(checkpoint['optimizer'])
+            lr_scheduler.step(begin_epoch)
             logger.info("=> loaded checkpoint '{}' (epoch {})".format(
                 checkpoint_file, checkpoint['epoch']))
             #cfg.NEED_AUTOANCHOR = False     #disable autoanchor
@@ -315,7 +319,8 @@ def main():
             transform=transforms.Compose([
                 transforms.ToTensor(),
                 normalize,
-            ])
+            ]),
+            data_percentage = args.val_data_percentage,
         )
 
         valid_loader = DataLoaderX(
@@ -338,6 +343,28 @@ def main():
                 else model.model[model.detector_index]
             logger.info(str(det.anchors))
 
+    # validation only
+    if args.eval:
+        epoch = begin_epoch + 1
+        da_segment_results,ll_segment_results,detect_results, total_loss,maps, times = validate(
+                epoch,cfg, valid_loader, valid_dataset, model, criterion,
+                final_output_dir, tb_log_dir, writer_dict,
+                logger, device, rank
+            )
+        fi = fitness(np.array(detect_results).reshape(1, -1))  #目标检测评价指标
+
+        msg = 'Epoch: [{0}]    Loss({loss:.3f})\n' \
+                    'Driving area Segment: Acc({da_seg_acc:.3f})    IOU ({da_seg_iou:.3f})    mIOU({da_seg_miou:.3f})\n' \
+                    'Lane line Segment: Acc({ll_seg_acc:.3f})    IOU ({ll_seg_iou:.3f})  mIOU({ll_seg_miou:.3f})\n' \
+                    'Detect: P({p:.3f})  R({r:.3f})  mAP@0.5({map50:.3f})  mAP@0.5:0.95({map:.3f})\n'\
+                    'Time: inference({t_inf:.4f}s/frame)  nms({t_nms:.4f}s/frame)'.format(
+                        epoch,  loss=total_loss, da_seg_acc=da_segment_results[0],da_seg_iou=da_segment_results[1],da_seg_miou=da_segment_results[2],
+                        ll_seg_acc=ll_segment_results[0],ll_seg_iou=ll_segment_results[1],ll_seg_miou=ll_segment_results[2],
+                        p=detect_results[0],r=detect_results[1],map50=detect_results[2],map=detect_results[3],
+                        t_inf=times[0], t_nms=times[1])
+        logger.info(msg)
+        return 
+    
     # training
     num_warmup = max(round(cfg.TRAIN.WARMUP_EPOCHS * num_batch), 1000)
     scaler = amp.GradScaler(enabled=device.type != 'cpu')
@@ -380,18 +407,19 @@ def main():
 
         # save checkpoint model and best model
         if rank in [-1, 0]:
-            savepath = os.path.join(final_output_dir, f'epoch-{epoch}.pth')
-            logger.info('=> saving checkpoint to {}'.format(savepath))
-            save_checkpoint(
-                epoch=epoch,
-                name=cfg.MODEL.NAME,
-                model=model,
-                # 'best_state_dict': model.module.state_dict(),
-                # 'perf': perf_indicator,
-                optimizer=optimizer,
-                output_dir=final_output_dir,
-                filename=f'epoch-{epoch}.pth'
-            )
+            if epoch % args.save_frep == 0 or epoch == 1:
+                savepath = os.path.join(final_output_dir, f'epoch-{epoch}.pth')
+                logger.info('=> saving checkpoint to {}'.format(savepath))
+                save_checkpoint(
+                    epoch=epoch,
+                    name=cfg.MODEL.NAME,
+                    model=model,
+                    # 'best_state_dict': model.module.state_dict(),
+                    # 'perf': perf_indicator,
+                    optimizer=optimizer,
+                    output_dir=final_output_dir,
+                    filename=f'epoch-{epoch}.pth'
+                )
             save_checkpoint(
                 epoch=epoch,
                 name=cfg.MODEL.NAME,
