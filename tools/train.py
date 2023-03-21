@@ -407,7 +407,7 @@ def main():
 
         # save checkpoint model and best model
         if rank in [-1, 0]:
-            if epoch % args.save_frep == 0 or epoch == 1:
+            if epoch % args.save_freq == 0 or epoch == 1:
                 savepath = os.path.join(final_output_dir, f'epoch-{epoch}.pth')
                 logger.info('=> saving checkpoint to {}'.format(savepath))
                 save_checkpoint(
