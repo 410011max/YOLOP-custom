@@ -25,6 +25,16 @@
     python -m torch.distributed.launch --nproc_per_node=1 tools/train.py --logDir yolov7_0320 --yolov7 --yolov7-cfg ./lib/models_yolov7/yolovPP.yaml --val-data-percentage 0.1
     ```
 + 送Demo, (下面 `{path to testing dataset}` 的部分要改一下)
+測試資料集的架構
+```
+├─{path to testing dataset}
+│ ├─Testing_Dataset   # data for segmentation
+| | ├─0001.jpg
+│ ├─Testing_Dataset_Only_for_detection   # data for object detection
+| | ├─JPEGImages
+| | | ├─All
+| | | | ├─itp_1.jpg
+```
     ```
     python tools/demo.py --weights yolov7_0320/BddDataset/checkpoint.pth --source {path to testing dataset} --yolov7 --yolov7-cfg lib/models_yolov7/yolovPP.yaml  --device 0 --conf-thres 0.3 --save-dir inference/output2 
     ```
