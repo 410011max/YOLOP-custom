@@ -50,6 +50,10 @@ def detect(cfg,  opt):
     if os.path.exists(opt.save_dir):  # output dir
         shutil.rmtree(opt.save_dir)  # delete dir
     os.makedirs(opt.save_dir)  # make new dir
+    opt.save_dir_visualize = opt.save_dir + '_visualize'
+    if os.path.exists(opt.save_dir_visualize):
+        shutil.rmtree(opt.save_dir_visualize)  # delete dir
+    os.makedirs(opt.save_dir_visualize)  # make new dir
     half = device.type != 'cpu'  # half precision only supported on CUDA
 
     # Load model
@@ -116,6 +120,7 @@ def detect(cfg,  opt):
         det=det_pred[0]
 
         save_path = str(opt.save_dir +'/'+ Path(path).name) if dataset.mode != 'stream' else str(opt.save_dir + '/' + "web.mp4")
+        save_path_visualize = str(opt.save_dir_visualize +'/'+ Path(path).name) if dataset.mode != 'stream' else str(opt.save_dir + '/' + "web.mp4")
 
         _, _, height, width = img.shape
         h,w,_=img_det.shape
@@ -149,7 +154,7 @@ def detect(cfg,  opt):
                 plot_one_box(xyxy, img_det , label=label_det_pred, color=colors[int(cls)], line_thickness=2)
         
         if dataset.mode == 'images':
-            cv2.imwrite(save_path[:-4] + "_visiulize.jpg", img_det)
+            cv2.imwrite(save_path_visualize[:-4] + "_visiulize.jpg", img_det)
             #pass
 
         elif dataset.mode == 'video':
@@ -215,4 +220,13 @@ if __name__ == '__main__':
     parser.add_argument('--yolov7-cfg', type=str, help = 'path to the configuration file of yolov7')
     opt = parser.parse_args()
     with torch.no_grad():
+        source_root = opt.source
+        save_dir_root = opt.save_dir 
+        # Detection
+        opt.source = os.path.join(source_root, 'Testing_Dataset_Only_for_detection', 'JPEGImages', 'All')
+        opt.save_dir = os.path.join(save_dir_root, 'object_detections')
+        detect(cfg,opt)
+        # Segmentation
+        opt.source = os.path.join(source_root, 'Testing_Dataset')
+        opt.save_dir = os.path.join(save_dir_root, 'segmentation')
         detect(cfg,opt)
