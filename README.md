@@ -27,19 +27,19 @@
 + 送Demo, (下面 `{path to testing dataset}` 的部分要改一下)
 
 測試資料集的架構
-    ```
-    ├─{path to testing dataset}
-    │ ├─Testing_Dataset   # data for segmentation
-    | | ├─0001.jpg
-    │ ├─Testing_Dataset_Only_for_detection   # data for object detection
-    | | ├─JPEGImages
-    | | | ├─All
-    | | | | ├─itp_1.jpg
-    ```
+```
+├─{path to testing dataset}
+│ ├─Testing_Dataset   # data for segmentation
+| | ├─0001.jpg
+│ ├─Testing_Dataset_Only_for_detection   # data for object detection
+| | ├─JPEGImages
+| | | ├─All
+| | | | ├─itp_1.jpg
+```
 產生測試結果
-    ```
-    python tools/demo.py --weights yolov7_0320/BddDataset/checkpoint.pth --source {path to testing dataset} --yolov7 --yolov7-cfg lib/models_yolov7/yolovPP.yaml  --device 0 --conf-thres 0.3 --save-dir inference/output2 
-    ```
+```
+python tools/demo.py --weights yolov7_0320/BddDataset/checkpoint.pth --source {path to testing dataset} --yolov7 --yolov7-cfg lib/models_yolov7/yolovPP.yaml  --device 0 --conf-thres 0.3 --save-dir inference/output2 
+```
 
 
 + **checkpoint 跟 yolo-v7 pretrained weight 放在這邊**
